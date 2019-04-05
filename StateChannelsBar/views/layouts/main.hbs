@@ -1,0 +1,619 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Demo</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous">
+    </script>
+
+    <script src="/scripts/main.js"></script>
+
+    <link rel="stylesheet" href="/styles/sample-loader.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/0.7.4/tailwind.min.css">
+    <style>
+            .w-96{
+                width: 24rem;
+            }
+            .h-160{
+                height: 40rem;
+            }
+            .hide-me {
+                display: none;
+            }
+
+            .btn {
+                border: 2px solid black;
+                border-radius: 3px;
+                margin: 10px;
+                padding: 5px;
+                color: red;
+            }
+    </style>
+</head>
+  <body>
+
+    <div class="flex flex-wrap p-2">
+
+       <div class="frames open-sc-frame m-2 bg-white shadow-lg">
+                <iframe id="sc-wrapper"  width="375" height="667"  frameborder="0"></iframe>
+       </div>
+
+    </div>
+
+    {{>loader}}
+
+    <script>
+
+        const showInfo = true;
+
+        window.showInfo = showInfo;
+        
+
+        console.log(aeWeb);
+
+        let initiatorKeyPair = {
+            publicKey: '',
+            secretKey: ''
+        }
+
+        const ONE_AE = 1000000000000000000;
+        window.ONE_AE = ONE_AE;
+
+        const url = aeWeb.config.node.API_URL;
+        const internalUrl = aeWeb.config.node.INTERNAL_API_URL; 
+        const networkId = aeWeb.config.node.NETWORK_ID;
+
+        const responderId = aeWeb.config.responderAddress;
+
+        let Crypto = aeWeb.crypto;
+        let Channel = aeWeb.channel;
+        let Universal = aeWeb.universal;
+        let Wallet = aeWeb.wallet;
+        let MemoryAccount = aeWeb.memoryAccount;
+        let TxBuilder = aeWeb.txBuilder;
+
+        let initiatorAddress = initiatorKeyPair.publicKey;
+        let account;
+        let channel;
+
+        let channelReserve;
+
+        let createAccount;
+        let updateState;
+        let getAndUpdateOffChainBalance;
+        let getOffChainBalance;
+        let reDeposit;
+
+        let publicAddress;
+        let startStateChannel;
+
+        let scWrapper;
+        let channelStatus;
+        let loadOpenFrame;
+
+        let isNextCoffeeFreeOldState = false;
+        let isCoffeeFree = false;
+
+        function isNextCoffeeFree() {
+            return isCoffeeFree;
+        };
+
+        window.isNextCoffeeFree = isNextCoffeeFree;
+
+        let frames = {
+            OPEN: '/new-style-html/demo-00.html',
+            BUY: '/new-style-html/demo-01.html',
+            BUY_FREE: '/new-style-html/demo-02.html',
+            CREDITS: '/new-style-html/demo-03.html',
+            OPTIONS: '2',
+            HISTORY: '/new-style-html/demo-04.html',
+            EMPTY: '3'
+        };
+
+        window.frames = frames;
+
+        function changeFrame() {
+
+            let action = $(this).attr('id').replace('btn-', '').toUpperCase();
+
+            scWrapper.attr('src', frames[action]);
+        };
+
+        window.changeFrame = changeFrame;
+
+        (async function () {
+
+            
+
+            //account = await aeWeb.aepp({ parent: window.parent, self: window });
+            //account = await aeWeb.aepp({ parent: window.parent, self: window, compilerUrl: 'https://compiler.aepps.com' });
+            //account = await aeWeb.aepp({ parent: window.parent, self: window, compilerUrl: 'http://localhost:3001' });
+
+            //await account.http.changeBaseUrl('http://localhost:3001');
+
+
+            //console.log('-------- demo ---------')
+            //console.log(account)
+            //console.log('-------- demo ---------')
+            //console.log()
+
+            //console.log(111111)
+            //publicAddress = await account.address();
+            //console.log('await account.address()')
+            //console.log(publicAddress)
+            //console.log()
+            //console.log(222222)
+            //publicAddress = await account.getAddress();
+            //console.log('await account.getAddress()')
+            //console.log(publicAddress);
+
+            //console.log(333333)
+
+            account = await aeWeb.aepp();
+            //account = await aeWeb.aepp({ parent: window.parent, self: window, compilerUrl: 'https://compiler.aepps.com' });
+            //publicAddress = await account.address();
+            //publicAddress = await account.getAddress();
+            publicAddress = 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q';
+            
+            initiatorAddress = publicAddress;
+            window.initiatorAddress = initiatorAddress;
+
+            console.log('[INFO] ==> initiatorAddress <==');
+            console.log(initiatorAddress);
+            console.log();
+
+            let result = await $.ajax({
+                    type: "GET",
+                    url: `/faucet?pubKey=${initiatorAddress}`
+            });
+
+            if(showInfo) {
+                console.log('[RESULT]', result.message);
+            }
+            
+        })();
+
+        (async function () {
+
+            const history = [];
+
+            scWrapper = $('#sc-wrapper');
+            window.scWrapper = scWrapper;
+
+            function loadOpenFrame () {
+                scWrapper.attr('src', frames.EMPTY);
+                scWrapper.attr('src', frames.OPEN);
+            }
+
+            function loadCreditFrame() {
+                scWrapper.attr('src', frames.CREDITS);
+            } 
+
+            loadOpenFrame();
+            
+            function isChannelOpen () {
+                if(channelStatus !== 'open') {
+                    loadOpenFrame();
+                    return false;
+                }
+
+                return true;
+            }
+
+            window.isChannelOpen = isChannelOpen;
+
+            /* Open state channel*/
+            let btnsStartStateChannel = $('.btns-start-sc');
+            btnsStartStateChannel.click(startStateChannel);
+
+            startStateChannel = async function () {
+
+                let depositValue = parseInt($(this).data('amount-value'));
+
+                if (showInfo) {
+                    console.log('[DEBUG] open SC | deposit value:', depositValue);
+                }
+
+                depositAmount = depositValue * ONE_AE;
+                
+                showLoader();
+
+                if (!depositAmount || depositAmount < 1) {
+                    alert('Invalid deposit amount!');
+                    return;
+                }
+
+                $('.start-wrapper').hide();
+
+                let params = await getParams();
+
+                if (depositAmount < params.responderAmount) {
+                    alert(`Deposit should be equal or greater than ${params.responderAmount}!`);
+                    $('.start-wrapper').show();    
+                    hideLoader();
+                    return;
+                }
+
+                params.responderAmount = parseInt(depositAmount);
+                params.initiatorAmount = parseInt(depositAmount);
+                params.initiatorId = initiatorAddress;
+
+                channelReserve = parseInt(params.channelReserve);
+
+
+                channel = await connectAsInitiator(params, sign);
+                channelActions(channel);
+
+                window.channel = channel;
+                window.responderId = params.responderId;
+
+                let data = {
+                    params: params
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: '/channel',
+                    data: data,
+                    success: function (response) {
+                        console.log('[RESULT] channel creation response: ', response);
+                    }
+                });
+            }
+
+            window.startStateChannel = startStateChannel;
+
+            async function connectAsInitiator(params, sign) {
+
+                const TIMEOUT = 1000 * 60 * 15;
+
+                const _params = {
+                    ...params,
+                    url: aeWeb.config.node.STATE_CHANNEL_URL, // 'ws://localhost:3001',
+                    //url: 'wss://sdk-testnet.aepps.com/',
+                    role: 'initiator',
+                    sign: sign,
+                    //timeout_accept : TIMEOUT,
+                    //timeout_funding_lock : TIMEOUT,
+                    //timeout_awaiting_locked : TIMEOUT,
+                    //timer_funding_lock: TIMEOUT,
+                    //timeout_idle: TIMEOUT,
+                    //timeout_funding_create: TIMEOUT,
+                    //timeout_sign: TIMEOUT,
+                    minimum_depth: 0
+                }
+
+                if (showInfo) {
+                    console.log('[PARAMS]');
+                    console.log(_params);
+                }
+
+                return await Channel(_params)
+            }
+
+            async function sign(tag, tx) {
+                // Deserialize binary transaction so we can inspect it
+                const txData = deserializeTx(tx);
+                
+                if (txData.tag === 'CHANNEL_CREATE_TX') {
+                    if(showInfo) {
+                        console.log('[SIGN] CHANNEL_CREATE_TX');
+                        console.log(txData);
+                        console.log();
+                    }
+                    
+                    return account.signTransaction(tx);
+                }
+
+                if (tag === 'update_ack' || tag === 'CHANNEL_OFFCHAIN_TX') {
+                    if(showInfo) {
+                        console.log('[SIGN] CHANNEL_OFFCHAIN_TX');
+                        console.log(txData);
+                        console.log();
+                    }
+                    
+                    return account.signTransaction(tx);
+                }
+
+                if (tag === 'shutdown_sign_ack' || txData.tag === 'CHANNEL_CLOSE_MUTUAL_TX') {
+                    if(showInfo) {
+                        console.log('[SIGN] CHANNEL_CLOSE_MUTUAL_TX');
+                        console.log(txData);
+                        console.log();
+                    }
+                    
+                    return account.signTransaction(tx);
+                }
+
+                console.log('[ERROR] Not a suitable case to sign a TX');
+                console.log();
+            }
+
+            async function channelActions(channel) {
+
+                channel.on('statusChanged', (status) => {
+                    channelStatus = status;
+                    if(showInfo) {
+                        console.log(`[STATUS] ${status.toUpperCase()}`);
+                        console.log();
+                    }
+                    
+                });
+
+                channel.on('onChainTx', (tx) => {
+                    if(showInfo) {
+                        console.log('[ON-CHAIN-TX]');
+                        console.log(tx);
+                        console.log();
+                    }
+                    
+                })
+
+                channel.on('message', async (msg) => {
+
+                    let info = JSON.parse(msg.info);
+
+                    if (msg.info.indexOf('successfully created') >= 0) {
+                        hideLoader();
+                        scWrapper.attr('src', frames.BUY);
+                        if(showInfo) {
+                            console.log(`[ON_MESSAGE] ${msg.info}`);
+                        }
+
+                        //showSeconds(120);
+                        function showSeconds (maxSeconds) {
+                            let currentSecond = 1;
+                            let interval = setInterval(function () {
+                                console.log(currentSecond++);
+                                if(currentSecond >= maxSeconds) {
+                                    clearInterval(interval);
+                                }
+                            }, 1000);
+                        }
+                        
+                    }
+
+                    if(msg.info.indexOf('[OFF_CHAIN]') >= 0) {
+                        if(showInfo){
+                            console.log(`[ON_MESSAGE] ${msg.info}`);
+                        }
+
+                        let historyData = {
+                            quantity: 1,
+                            name: info.name,
+                            amount: info.amount,
+                            date: new Date()
+                        };
+
+                        let oldState = isNextCoffeeFreeOldState;
+                        isCoffeeFree = info.isNextFree;
+
+                        if (isNextCoffeeFree || oldState){
+
+
+
+                            scWrapper.attr('src', frames.EMPTY);
+                            scWrapper.attr('src', frames.BUY);
+                        }
+
+                        history.push(historyData);
+
+                    }
+                });
+            }
+
+            getAndUpdateOffChainBalance = async function () {
+                let balance = await getOffChainBalance();
+                updateOffChainBalance(balance);
+            }
+            
+            getOffChainBalance = async function () {
+                 // off chain balances
+                //let balances = await channel.balances([ initiatorKeyPair.publicKey]);
+                //let offChainBalance = balances[initiatorKeyPair.publicKey];
+
+                let balances = await channel.balances([ initiatorAddress ]);
+                let offChainBalance = balances[ initiatorAddress ];
+
+                return offChainBalance;
+            }
+
+            window.getOffChainBalance = getOffChainBalance;
+
+            updateState = async function (channel, senderAddress, recipientAddress, amount) {
+
+                if(showInfo) {
+                    console.log(`[DEBUG] sender: ${senderAddress}, recipient: ${recipientAddress}, amount: ${amount}`);
+                    console.log();
+                }
+
+                try {
+                    let result = await channel.update(
+                        // Sender account
+                        senderAddress,
+                        // Recipient account
+                        recipientAddress,
+                        // Amount
+                        parseInt(amount),
+                        // This function should verify offchain transaction
+                        // and sign it with initiator's private key
+                        async (tx) => await account.signTransaction(tx)
+                    );
+                } catch (e) {
+                    alert('[ERROR] UPDATE: Something went wrong! Invalid Tx!');
+                    console.log(e);
+                }
+            }
+
+            window.updateState = updateState;
+
+            reDeposit = async function (amount) {
+
+                if(showInfo) {
+                    console.log('[DEBUG] try to redeposit with:', amount);
+                    console.log();
+                }
+                
+                showLoader();
+                let result = await channel.deposit(parseInt(amount), async (tx) => await account.signTransaction(tx));
+                
+                hideLoader();
+                loadCreditFrame()
+
+                if(result.accepted){
+                    let historyData = {
+                        quantity: 1,
+                        name: 'CREDIT',
+                        amount: amount,
+                        date: new Date()
+                    };
+
+                    history.push(historyData);
+                }
+
+                if(showInfo) {
+                    console.log('[RESULT] credit', result);
+                    console.log();
+                }
+
+            }
+
+            /* Shutdown state channel*/
+            async function closeChannel() {
+
+                if(!isChannelOpen()) {
+                    console.log('[ERROR] State Channel is DISCONNECTED!');
+                    return;
+                }
+
+                try {
+                    
+                    let shutDownResult = await channel.shutdown(async (tx) => {
+                        // clear history array
+                        while (history.pop());
+                        return account.signTransaction(tx);
+                    });
+
+                    if(showInfo) {
+                        console.log('[RESULT] shutdown');
+                        console.log(shutDownResult);
+                        console.log();
+                    }
+
+                } catch (e) {
+                    console.log('[ERROR] Error occurred while closing the channel.')
+                    console.log(e);
+                }
+
+                let data = {
+                    initiatorAddress: initiatorKeyPair.publicKey
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: '/stop',
+                    data: data,
+                    success: function (response) {
+                        if(showInfo) {
+                            console.log('[INFO] state channel successfully closed:', response)
+                        }
+                        
+                    },
+                    error: function (response) {
+                        console.log('[ERROR] stop:', response)
+                    }
+                });
+            }
+
+            window.closeChannel = closeChannel;
+
+            async function credit() {
+
+                if(!isChannelOpen()){
+                    return;
+                }
+
+                let amountToRedeposit = $(this).data('credit');
+                
+                if (isNaN(amountToRedeposit) || amountToRedeposit <= 0) {
+                    alert("Redeposit should be a number and greater than 0(zero).");
+                    return;
+                }
+
+                amountToRedeposit = parseInt(amountToRedeposit);
+
+                if(showInfo) {
+                    console.log('[DEBUG] parse credit:', amountToRedeposit);
+                }
+
+                await reDeposit(amountToRedeposit * ONE_AE);
+            }
+
+            window.credit = credit;
+
+            window.getHistory = function () {
+                return history;
+            }
+
+            /* Utils */
+
+            createAccount = async function (keyPair) {
+                let account = await Universal({
+                    networkId: networkId,
+                    url: url,
+                    internalUrl: internalUrl,
+                    keypair: {
+                        publicKey: keyPair.publicKey,
+                        secretKey: keyPair.secretKey
+                    },
+                    compilerUrl: 'https://compiler.aepps.com'
+                })
+
+                return account;
+            }
+
+            async function createAccount2(keyPair) {
+                let account = await Wallet({
+                    url: url,
+                    internalUrl: internalUrl,
+                    accounts: [MemoryAccount({
+                        keypair: {
+                            secretKey: keyPair.secretKey,
+                            publicKey: keyPair.publicKey
+                        }
+                    })],
+                    address: keyPair.publicKey,
+                    onTx: true,
+                    onChain: true,
+                    onAccount: true,
+                    onContract: true,
+                    networkId: networkId,
+                    compilerUrl: 'https://compiler.aepps.com'
+                });
+
+                return account;
+            }
+
+            async function getParams() {
+                let result = await $.ajax({
+                    type: "GET",
+                    url: '/config/params'
+                });
+                
+                return result;
+            }
+
+            function deserializeTx(tx) {
+                const txData = Crypto.deserialize(Crypto.decodeTx(tx), { prettyTags: true });
+
+                return txData;
+            }
+
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+<div id="sample-loader" class="loader-container hide-me" >
+    <div class="loader loader-center"></div>
+</div>
+
+<script>
+
+    let showLoader;
+    let hideLoader;
+
+    window.addEventListener('load', function () {
+
+        showLoader = function () {
+            scWrapper.attr('src', frames.EMPTY);
+            $('.frames').hide();
+            $('#sample-loader').show();
+        };
+
+        hideLoader = function (frame) {
+            //$(`.${frame}`).show();
+            $('.frames').show();
+            $('#sample-loader').hide();
+        }
+        
+    });
+</script>

@@ -1,0 +1,68 @@
+  @font-face {
+    font-family: 'Sans';
+    font-style:  normal;
+    font-weight: 400;
+    src: url("../fonts/Inter-Medium.woff2") format("woff2");
+  }
+  
+  @font-face {
+    font-family: 'Sans';
+    font-style:  normal;
+    font-weight: 700;
+    src: url("../fonts/Inter-Bold.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: 'Serif';
+    font-style:  normal;
+    font-weight: 400;
+    src: url("../fonts/Canela-Light.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: 'Condensed';
+    font-style:  normal;
+    font-weight: 400;
+    src: url("../fonts/TuskerGrotesk-3500Medium.woff2") format("woff2");
+  }
+
+.font-sans{ 
+    font-family: 'Sans'; 
+}
+
+.font-serif{ 
+      font-family: 'Serif'; 
+}
+
+.font-condensed{ 
+    font-family: 'Condensed'; 
+} 
+
+.bg-teal-lightest {
+    background-color: #d0e0df;
+}
+
+.text-teal-lightest {
+    color: #d0e0df;
+}
+
+.text-pink-darkest-50{
+    color:rgba(69, 18, 37,.5);
+}
+
+.border-pink-darkest-25{
+    border-color:rgba(69, 18, 37,.25);
+}
+
+.flex-2{
+   flex-grow: 2;
+}
+
+.tracking{
+    letter-spacing: 0.025em;
+}	
+
+.tracking-wide {
+    letter-spacing: .15em;
+}        
+.text-6xl	{font-size: 6rem;   } 
