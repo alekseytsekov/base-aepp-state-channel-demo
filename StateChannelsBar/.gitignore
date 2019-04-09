@@ -59,3 +59,14 @@ typings/
 
 # next.js build output
 .next
+
+# test net db
+uat_db
+
+# dbs
+docker/logs
+docker/db-testnet-new
+docker/db-testnet
+
+# some unused htmls
+public/new-style-html-v2

@@ -73,6 +73,9 @@
 
             if (window.parent.isNextCoffeeFree()) {
                 $('#free-coffee').show();
+                $('#btn-coffee').text('ORDER A FREE COFFEE!');
+            } else {
+                $('#btn-coffee').text('ORDER AND PAY — 0.5 AE');
             }
 
             async function updateOffChainBalance () {
@@ -84,34 +87,6 @@
 			updateOffChainBalance();
 
             let initiatorAddress = window.parent.initiatorAddress;
-
-            /*
-            getProducts = async function () {
-                let products = await $.ajax({
-                    type: "GET",
-                    url: '/products'
-                });
-
-                let productWrapper = $('.product-wrapper');
-                productWrapper.empty();
-
-                for(product of products) {
-                    let productElement = $(`<div class="row">
-                                                <div class="col-sm-12">
-                                                    <button class="btn-buy-product btn btn-success" data-name="${product.name}">Buy</button>
-                                                    <span><b>${product.name}</b>: ${product.price} ae</span>
-                                                </div>
-                                            </div>
-
-                                            <br>`);
-
-                    productWrapper.append(productElement);
-                }
-
-                let btnBuyProduct = $('.btn-buy-product');
-                btnBuyProduct.click(buyProduct);
-            }
-            */
 
             buyProduct = async function () {
                 

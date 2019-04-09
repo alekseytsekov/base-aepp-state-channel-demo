@@ -9566,6 +9566,7 @@ const {
     Aepp
 } = __webpack_require__(336);
 
+//const Aepp = require('@aeternity/aepp-sdk/es/ae/aepp').default;
 
 const {
     API_URL,

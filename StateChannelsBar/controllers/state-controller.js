@@ -187,7 +187,7 @@ async function faucet(req, res) {
 // connect as responder or initiator 
 async function connectAsResponder(params) {
 
-    const TIMEOUT = 1000 * 60 * 100;
+    const TIMEOUT = 600000 * 2 ;// 1000 * 60 * 20;
 
     const _params = {
         ...params,
@@ -202,7 +202,10 @@ async function connectAsResponder(params) {
         // timeout_idle: TIMEOUT,
         // timeout_funding_create: TIMEOUT,
         // timeout_sign: TIMEOUT,
-        minimum_depth: 0
+
+        //timeout_awaiting_open: TIMEOUT,
+        timeout_idle: TIMEOUT,
+        //minimum_depth: 0
     };
 
     console.log('[PARAMS]');
@@ -362,3 +365,4 @@ module.exports = {
         stopChannel
     }
 }
+

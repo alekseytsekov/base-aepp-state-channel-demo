@@ -43,7 +43,7 @@
 
     </div>
 
-    {{>loader}}
+    {{!-- {{>loader}} --}}
 
     <script>
 
@@ -110,7 +110,9 @@
             CREDITS: '/new-style-html/demo-03.html',
             OPTIONS: '2',
             HISTORY: '/new-style-html/demo-04.html',
-            EMPTY: '3'
+            EMPTY: '3',
+            LOADER: '/new-style-html/loader.html'
+            //LOADER: '/new-style-html-v2/demo-05.html'
         };
 
         window.frames = frames;
@@ -122,47 +124,26 @@
             scWrapper.attr('src', frames[action]);
         };
 
+        function showLoader(){
+            scWrapper.attr('src', frames.EMPTY);
+            scWrapper.attr('src', frames.LOADER);
+        }
+
+        function hideLoader(){
+            
+        }
+
         window.changeFrame = changeFrame;
 
         (async function () {
 
-            
-
-            //account = await aeWeb.aepp({ parent: window.parent, self: window });
-            //account = await aeWeb.aepp({ parent: window.parent, self: window, compilerUrl: 'https://compiler.aepps.com' });
-            //account = await aeWeb.aepp({ parent: window.parent, self: window, compilerUrl: 'http://localhost:3001' });
-
-            //await account.http.changeBaseUrl('http://localhost:3001');
-
-
-            //console.log('-------- demo ---------')
-            //console.log(account)
-            //console.log('-------- demo ---------')
-            //console.log()
-
-            //console.log(111111)
-            //publicAddress = await account.address();
-            //console.log('await account.address()')
-            //console.log(publicAddress)
-            //console.log()
-            //console.log(222222)
-            //publicAddress = await account.getAddress();
-            //console.log('await account.getAddress()')
-            //console.log(publicAddress);
-
-            //console.log(333333)
-
             account = await aeWeb.aepp();
-            //account = await aeWeb.aepp({ parent: window.parent, self: window, compilerUrl: 'https://compiler.aepps.com' });
-            //publicAddress = await account.address();
-            //publicAddress = await account.getAddress();
-            publicAddress = 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q';
+            publicAddress = await account.address();
             
             initiatorAddress = publicAddress;
             window.initiatorAddress = initiatorAddress;
 
-            console.log('[INFO] ==> initiatorAddress <==');
-            console.log(initiatorAddress);
+            console.log('[INFO] initiator Address:', initiatorAddress);
             console.log();
 
             let result = await $.ajax({
@@ -268,7 +249,7 @@
 
             async function connectAsInitiator(params, sign) {
 
-                const TIMEOUT = 1000 * 60 * 15;
+                const TIMEOUT = 600000 * 2 ;// 1000 * 60 * 20;
 
                 const _params = {
                     ...params,
@@ -283,7 +264,10 @@
                     //timeout_idle: TIMEOUT,
                     //timeout_funding_create: TIMEOUT,
                     //timeout_sign: TIMEOUT,
-                    minimum_depth: 0
+                    
+                    //timeout_awaiting_open: TIMEOUT,
+                    timeout_idle: TIMEOUT,
+                    //minimum_depth: 0
                 }
 
                 if (showInfo) {
@@ -340,7 +324,10 @@
                         console.log(`[STATUS] ${status.toUpperCase()}`);
                         console.log();
                     }
-                    
+
+                    if(status.toUpperCase() === 'DISCONNECTED') {
+                        loadOpenFrame();
+                    }
                 });
 
                 channel.on('onChainTx', (tx) => {
@@ -349,7 +336,6 @@
                         console.log(tx);
                         console.log();
                     }
-                    
                 })
 
                 channel.on('message', async (msg) => {
@@ -357,13 +343,13 @@
                     let info = JSON.parse(msg.info);
 
                     if (msg.info.indexOf('successfully created') >= 0) {
-                        hideLoader();
+                        // hideLoader();
                         scWrapper.attr('src', frames.BUY);
                         if(showInfo) {
                             console.log(`[ON_MESSAGE] ${msg.info}`);
                         }
 
-                        //showSeconds(120);
+                        //showSeconds(180);
                         function showSeconds (maxSeconds) {
                             let currentSecond = 1;
                             let interval = setInterval(function () {
@@ -460,7 +446,7 @@
                 showLoader();
                 let result = await channel.deposit(parseInt(amount), async (tx) => await account.signTransaction(tx));
                 
-                hideLoader();
+                //hideLoader();
                 loadCreditFrame()
 
                 if(result.accepted){

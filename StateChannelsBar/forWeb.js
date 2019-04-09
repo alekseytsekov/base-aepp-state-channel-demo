@@ -8,6 +8,7 @@ const {
     Aepp
 } = require('@aeternity/aepp-sdk');
 
+//const Aepp = require('@aeternity/aepp-sdk/es/ae/aepp').default;
 
 const {
     API_URL,
