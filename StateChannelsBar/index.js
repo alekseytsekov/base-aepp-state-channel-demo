@@ -3,8 +3,6 @@ const exphbs = require('express-handlebars');
 const app = express();
 const router = require('./router');
 
-// const ws = require('ws');
-// console.log(ws);
 
 const PORT = 4000;
 

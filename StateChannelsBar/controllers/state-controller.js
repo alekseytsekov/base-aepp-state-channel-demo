@@ -187,7 +187,7 @@ async function faucet(req, res) {
 // connect as responder or initiator 
 async function connectAsResponder(params) {
 
-    const TIMEOUT = 600000 * 2 ;// 1000 * 60 * 20;
+    const TIMEOUT = 1000 * 60 * 20;
 
     const _params = {
         ...params,
@@ -205,7 +205,7 @@ async function connectAsResponder(params) {
 
         //timeout_awaiting_open: TIMEOUT,
         timeout_idle: TIMEOUT,
-        //minimum_depth: 0
+        minimum_depth: 0
     };
 
     console.log('[PARAMS]');
@@ -241,7 +241,7 @@ async function responderSign(tag, tx) {
 
     // When someone wants to transfer a tokens we will receive
     // a sign request with `update_ack` tag
-    if (tag === 'update_ack' || tag === 'CHANNEL_OFFCHAIN_TX') {
+    if (tag === 'update_ack' || tag === 'CHANNEL_OFFCHAIN_TX' || tag === 'CHANNEL_OFFCHAIN_UPDATE_TRANSFER') {
 
 
         console.log(txData);
@@ -257,7 +257,7 @@ async function responderSign(tag, tx) {
 
         // Check if update contains only one offchain transaction
         // and sender is initiator
-        if (txData.tag === 'CHANNEL_OFFCHAIN_TX') { // && isValid
+        if (txData.tag === 'CHANNEL_OFFCHAIN_TX') { //  && isValid
             sendConfirmMsg(txData);
             return account.signTransaction(tx);
         }
@@ -271,7 +271,10 @@ async function responderSign(tag, tx) {
         return account.signTransaction(tx);
     }
 
+
     console.log('[ERROR] ==> THERE IS NO SUITABLE CASE TO SIGN');
+    console.log(txData);
+    console.log();
 }
 
 function isTxValid(txData) {
@@ -287,19 +290,6 @@ function isTxValid(txData) {
         console.log('[TX_VALIDATION] ==> no data <==')
         return false;
     }
-
-    // console.log('[IS VALID] txData')
-    // console.log(txData)
-    // console.log()
-    // console.log('data')
-    // console.log(data)
-    // console.log()
-    // console.log('txData.updates[lastUpdateIndex]')
-    // console.log(txData.updates[lastUpdateIndex])
-    // console.log()
-    // console.log('data.product.price')
-    // console.log(data.product.price)
-    // console.log()
 
     let isRoundValid = data.round === txData.round;
     let isPriceValid = data.product.price === txData.updates[lastUpdateIndex].amount;

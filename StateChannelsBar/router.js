@@ -9,6 +9,7 @@ const partials = {
 module.exports = app => {
     app.get('/', function (req, res) {
         res.render(partials.HOME);
+        //res.send('Hello!');
     });
     app.post('/channel', stateController.post.createChannel);
     app.post('/buy', stateController.post.buyProduct);

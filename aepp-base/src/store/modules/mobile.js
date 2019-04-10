@@ -21,7 +21,7 @@ export default {
   },
 
   getters: {
-    addresses: ({ accounts }) => { console.log('[ala bala]'); console.log(accounts); return Object.keys(accounts); },
+    addresses: ({ accounts }) => Object.keys(accounts),
     loggedIn: ({ keystore, derivedKey }) => !!(keystore && derivedKey),
   },
 
