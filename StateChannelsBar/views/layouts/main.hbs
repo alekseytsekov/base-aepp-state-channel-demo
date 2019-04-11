@@ -48,8 +48,16 @@
     <script>
 
         const showInfo = true;
+
+        function log() {
+            if (showInfo) {
+                for (let arg in arguments) {
+                    console.log(arguments[arg]);
+                }
+            }
+        }
         
-        console.log(aeWeb);
+        log(aeWeb);
 
         let initiatorKeyPair = {
             publicKey: '',
@@ -57,7 +65,6 @@
         }
 
         const ONE_AE = 1000000000000000000;
-        window.ONE_AE = ONE_AE;
 
         const url = aeWeb.config.node.API_URL;
         const internalUrl = aeWeb.config.node.INTERNAL_API_URL; 
@@ -135,9 +142,7 @@
 
             runOnFrameChange(frameName) {
                 if(this.onFrameChange[frameName]){
-                    if(showInfo){
-                        console.log('[ON]', frameName)
-                    }
+                    log('[ON]', frameName);
 
                     for(let func in this.onFrameChange[frameName]){
                         this.onFrameChange[frameName][func]();
@@ -151,7 +156,7 @@
         changeFrame = function () {
             let action = $(this).attr('id').replace('btn-', '').toUpperCase();
 
-            console.log('[BTN-ACTION]', action);
+            log('[BTN-ACTION]', action);
 
             scWrapper.hide();
             $(frames[action]).show();
@@ -172,16 +177,14 @@
             initiatorAddress = publicAddress;
             window.initiatorAddress = initiatorAddress;
 
-            console.log('[INFO] initiator Address:', initiatorAddress);
+            log(`[INFO] initiator Address: ${initiatorAddress}`);
 
             let result = await $.ajax({
                     type: "GET",
                     url: `/faucet?pubKey=${initiatorAddress}`
             });
 
-            if(showInfo) {
-                console.log('[RESULT]', result.message);
-            }
+            log('[RESULT]', result.message);
 
             $('.change-frame').click(changeFrame);
             
@@ -245,9 +248,7 @@
 
                 let depositValue = parseInt($(this).data('amount-value'));
 
-                if (showInfo) {
-                    console.log('[DEBUG] open SC | deposit value:', depositValue);
-                }
+                log('[DEBUG] open SC | deposit value:', depositValue);
 
                 depositAmount = depositValue * ONE_AE;
                 
@@ -291,9 +292,7 @@
                     url: '/channel',
                     data: data,
                     success: function (response) {
-                        if(showInfo){
-                            console.log('[RESULT] channel creation response: ', response);
-                        }
+                        log('[RESULT] channel creation response: ', response);
                     }
                 });
             }
@@ -322,10 +321,7 @@
                     minimum_depth: 0
                 }
 
-                if (showInfo) {
-                    console.log('[PARAMS]');
-                    console.log(_params);
-                }
+                log('[PARAMS]', _params);
 
                 return await Channel(_params)
             }
@@ -335,29 +331,20 @@
                 const txData = deserializeTx(tx);
                 
                 if (txData.tag === 'CHANNEL_CREATE_TX') {
-                    if(showInfo) {
-                        console.log('[SIGN] CHANNEL_CREATE_TX');
-                        console.log(txData);
-                    }
+                    log('[SIGN] CHANNEL_CREATE_TX', txData);
                     
                     return account.signTransaction(tx);
                 }
 
                 if (tag === 'update_ack' || tag === 'CHANNEL_OFFCHAIN_TX') {
                     
-                    if(showInfo) {
-                        console.log('[SIGN] CHANNEL_OFFCHAIN_TX');
-                        console.log(txData);
-                    }
+                    log('[SIGN] CHANNEL_OFFCHAIN_TX', txData);
                     
                     return account.signTransaction(tx);
                 }
 
                 if (tag === 'shutdown_sign_ack' || txData.tag === 'CHANNEL_CLOSE_MUTUAL_TX') {
-                    if(showInfo) {
-                        console.log('[SIGN] CHANNEL_CLOSE_MUTUAL_TX');
-                        console.log(txData);
-                    }
+                    log('[SIGN] CHANNEL_CLOSE_MUTUAL_TX', txData);
                     
                     return account.signTransaction(tx);
                 }
@@ -369,9 +356,7 @@
 
                 channel.on('statusChanged', (status) => {
                     channelStatus = status;
-                    if(showInfo) {
-                        console.log(`[STATUS] ${status.toUpperCase()}`);
-                    }
+                    log(`[STATUS] ${status.toUpperCase()}`);
 
                     if(status.toUpperCase() === 'DISCONNECTED') {
                         loadOpenFrame();
@@ -379,10 +364,7 @@
                 });
 
                 channel.on('onChainTx', (tx) => {
-                    if(showInfo) {
-                        console.log('[ON-CHAIN-TX]');
-                        console.log(tx);
-                    }
+                    log('[ON-CHAIN-TX]', tx);
                 })
 
                 channel.on('message', async (msg) => {
@@ -394,9 +376,7 @@
                         // scWrapper.attr('src', frames.BUY);
                         loadBuyFrame();
 
-                        if(showInfo) {
-                            console.log(`[ON_MESSAGE] ${msg.info}`);
-                        }
+                        log(`[ON_MESSAGE] ${msg.info}`);
 
                         //showSeconds(180);
                         function showSeconds (maxSeconds) {
@@ -412,9 +392,7 @@
                     }
 
                     if(msg.info.indexOf('[OFF_CHAIN]') >= 0) {
-                        if(showInfo){
-                            console.log(`[ON_MESSAGE] ${msg.info}`);
-                        }
+                        log(`[ON_MESSAGE] ${msg.info}`);
 
                         let historyData = {
                             quantity: 1,
@@ -451,9 +429,7 @@
 
             updateState = async function (channel, senderAddress, recipientAddress, amount) {
 
-                if(showInfo) {
-                    console.log(`[DEBUG] sender: ${senderAddress}, recipient: ${recipientAddress}, amount: ${amount}`);
-                }
+                log(`[DEBUG] sender: ${senderAddress}, recipient: ${recipientAddress}, amount: ${amount}`);
 
                 try {
                     let result = await channel.update(
@@ -475,9 +451,7 @@
 
             reDeposit = async function (amount) {
 
-                if(showInfo) {
-                    console.log('[DEBUG] try to redeposit with:', amount);
-                }
+                log('[DEBUG] try to redeposit with:', amount);
                 
                 showLoader();
                 let result = await channel.deposit(parseInt(amount), async (tx) => await account.signTransaction(tx));
@@ -495,10 +469,7 @@
                     history.push(historyData);
                 }
 
-                if(showInfo) {
-                    console.log('[RESULT] credit', result);
-                }
-
+                log('[RESULT] credit', result);
             }
 
             /* Shutdown state channel*/
@@ -516,12 +487,7 @@
                         return account.signTransaction(tx);
                     });
 
-                    if(showInfo) {
-                        console.log('[RESULT] shutdown');
-                        console.log(shutDownResult);
-                        console.log();
-                    }
-
+                    log('[RESULT] shutdown', shutDownResult);
                 } catch (e) {
                     console.log('[ERROR] Error occurred while closing the channel.')
                     console.log(e);
@@ -536,10 +502,7 @@
                     url: '/stop',
                     data: data,
                     success: function (response) {
-                        if(showInfo) {
-                            console.log('[INFO] state channel successfully closed:', response)
-                        }
-                        
+                        log('[INFO] state channel successfully closed:', response)
                     },
                     error: function (response) {
                         console.log('[ERROR] stop:', response)
@@ -562,9 +525,7 @@
 
                 amountToRedeposit = parseInt(amountToRedeposit);
 
-                if(showInfo) {
-                    console.log('[DEBUG] parse credit:', amountToRedeposit);
-                }
+                log('[DEBUG] parse credit:', amountToRedeposit);
 
                 await reDeposit(amountToRedeposit * ONE_AE);
             }
