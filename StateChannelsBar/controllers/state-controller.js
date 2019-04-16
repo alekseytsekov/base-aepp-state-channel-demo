@@ -126,6 +126,10 @@ async function buyProduct(req, res) {
 
 function stopChannel(req, res) {
 
+    console.log('[CLOSE] request body');
+    console.log(req.body);
+    console.log();
+
     let initiatorAddress = req.body.initiatorAddress;
     let result = openChannels.delete(initiatorAddress);
 
