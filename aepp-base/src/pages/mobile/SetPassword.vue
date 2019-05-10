@@ -1,5 +1,8 @@
 <template>
-  <MobilePage :title="recover ? 'Recover Account' : 'New Account'">
+  <MobilePage
+    :title="recover ? 'Recover Account' : 'New Account'"
+    hide-tab-bar
+  >
     <Guide>
       <AeFraction
         slot="icon"
@@ -10,8 +13,8 @@
       <template v-if="recover">
         You recovered your
         account <em>successfully</em>!
-        Now <mark>choose a new <img :src="keyEmoji"></mark>
-        <mark>password</mark> and confirm.
+        Now <mark>choose a new <img :src="keyEmoji"> password</mark>
+        and confirm.
       </template>
       <template v-else>
         Great, that's done. Now
@@ -21,7 +24,7 @@
 
     <form
       :id="_uid"
-      @submit.prevent="createKeystore"
+      @submit.prevent="createHdWallet"
     >
       <PasswordPurpose />
       <AeInputPassword
@@ -58,8 +61,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
-import keyEmojiPath from 'emoji-datasource-apple/img/apple/64/1f511.png';
+import keyEmoji from 'emoji-datasource-apple/img/apple/64/1f511.png';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
 import AeFraction from '../../components/AeFraction.vue';
@@ -80,17 +82,16 @@ export default {
       passwordConfirm: '',
       recover: false,
       working: false,
-      keyEmoji: keyEmojiPath,
+      keyEmoji,
     };
   },
-  computed: mapState(['keystore']),
   methods: {
-    async createKeystore() {
+    async createHdWallet() {
       if (!await this.$validator.validateAll()) return;
 
       this.working = true;
       try {
-        await this.$store.dispatch('createKeystore', {
+        await this.$store.dispatch('accounts/hdWallet/createWallet', {
           password: this.password,
           seed: this.seed,
         });

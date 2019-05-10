@@ -1,10 +1,7 @@
 <template>
   <div class="account-switcher">
     <header>
-      <AeAccount
-        v-bind="activeAccount"
-        fill="primary"
-      >
+      <AeAccount v-bind="activeAccount">
         <ButtonPlain
           slot="icon"
           v-copy-on-click="activeAccount.address"
@@ -16,19 +13,18 @@
 
     <main>
       <ListItemAccount
-        v-for="(account, index) in accounts"
+        v-for="account in accounts"
         :key="account.address"
         v-bind="account"
       >
         <AeRadio
           slot="right"
-          :checked="account === activeAccount"
-          @change="selectIdentity(index)"
+          :checked="account.address === actualActiveAccount.address"
+          @change="setActiveIdx(account.index)"
         />
       </ListItemAccount>
 
       <ListItem
-        v-if="ableToCreateAccount"
         title="Create a new account"
         @click="createAccount"
       >
@@ -49,7 +45,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapMutations } from 'vuex';
 import { AeIcon } from '@aeternity/aepp-components-3';
 import AeAccount from '../AeAccount.vue';
 import ButtonPlain from '../ButtonPlain.vue';
@@ -70,18 +66,33 @@ export default {
   props: {
     forLedger: { type: Boolean, default: false },
   },
-  computed: mapGetters({
-    accounts: 'identities',
-    activeAccount: 'activeIdentity',
-    totalBalance: 'totalBalance',
-    ableToCreateAccount: 'ableToCreateAccount',
-  }),
-  mounted() {
-    this.$store.dispatch('updateAllBalances');
+  subscriptions() {
+    return {
+      allAccounts: this.$store.state.observables.accounts,
+      actualActiveAccount: this.$store.state.observables.activeAccount,
+      totalBalance: this.$store.state.observables.totalBalance,
+    };
+  },
+  computed: {
+    accounts() {
+      return this.allAccounts
+        .map((account, index) => ({ ...account, index }))
+        .filter(this.isAccountToShow);
+    },
+    activeAccount() {
+      return this.isAccountToShow(this.actualActiveAccount)
+        ? this.actualActiveAccount : this.accounts[0];
+    },
   },
   methods: {
     prefixedAmount,
-    ...mapMutations(['selectIdentity', 'createAccount']),
+    ...mapMutations({ setActiveIdx: 'accounts/setActiveIdx' }),
+    createAccount() {
+      this.$store.dispatch(`accounts/${this.forLedger ? 'ledger' : 'hdWallet'}/create`);
+    },
+    isAccountToShow({ source: { type } }) {
+      return this.forLedger ? type === 'ledger' : type !== 'ledger';
+    },
   },
 };
 </script>

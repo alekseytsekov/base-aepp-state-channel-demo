@@ -15,17 +15,35 @@ import NewAccountCreate from '../../pages/mobile/NewAccountCreate.vue';
 import NewAccountConfirm from '../../pages/mobile/NewAccountConfirm.vue';
 import SetPassword from '../../pages/mobile/SetPassword.vue';
 import AccountsNew from '../../pages/mobile/AccountsNew.vue';
+import VaultSetupMethod from '../../pages/mobile/VaultSetupMethod.vue';
+import VaultSetupAnotherDevice from '../../pages/mobile/VaultSetupAnotherDevice.vue';
+import VaultSetupAnotherDeviceGuide from '../../pages/mobile/VaultSetupAnotherDeviceGuide.vue';
+import VaultSetupSameDevice from '../../pages/mobile/VaultSetupSameDevice.vue';
+import VaultSetupCompleted from '../../pages/mobile/VaultSetupCompleted.vue';
 import Transfer from '../../pages/mobile/Transfer.vue';
 import Receive from '../../pages/mobile/Receive.vue';
 import Send from '../../pages/mobile/Send.vue';
 import SendAmount from '../../pages/mobile/SendAmount.vue';
 import SendConfirm from '../../pages/mobile/SendConfirm.vue';
+import TransactionList from '../../pages/mobile/TransactionList.vue';
+import TransactionDetails from '../../pages/mobile/TransactionDetails.vue';
 import Settings from '../../pages/mobile/Settings.vue';
 import SettingsNetwork from '../../pages/mobile/SettingsNetwork.vue';
 import SettingsNetworkNew from '../../pages/mobile/SettingsNetworkNew.vue';
 import SettingsRemoteConnection from '../../pages/mobile/SettingsRemoteConnection.vue';
+import SettingsAppList from '../../pages/mobile/SettingsAppList.vue';
+import SettingsAppDetails from '../../pages/mobile/SettingsAppDetails.vue';
 
 const SettingsRemoteConnectionNew = () => import('../../pages/mobile/SettingsRemoteConnectionNew.vue');
+
+const mergeEnterHandlers = (...handlers) => (to, from, next) => next(
+  handlers.reduce((nextRoute, handler) => {
+    if (nextRoute) return nextRoute;
+    let res;
+    handler(to, from, (r) => { res = r; });
+    return res;
+  }, undefined),
+);
 
 const checkSeedPassed = (to, from, next) => {
   if (!to.params.seed) {
@@ -35,12 +53,22 @@ const checkSeedPassed = (to, from, next) => {
   next();
 };
 
+const checkAccountName = (to, from, next) => {
+  if (!store.state.accounts.airGap.newAccountName) {
+    next({ name: 'vault-new' });
+    return;
+  }
+  next();
+};
+
+const vaultBeforeEnter = mergeEnterHandlers(checkLoggedIn(true), checkAccountName);
+
 export default [{
   name: 'intro',
   path: '/',
   component: Intro,
   beforeEnter(to, from, next) {
-    if (!from.name && store.state.mobile.keystore) {
+    if (!from.name && store.state.accounts.hdWallet.encryptedWallet) {
       next({ name: 'login' });
       return;
     }
@@ -71,12 +99,12 @@ export default [{
   path: '/login',
   component: Login,
   beforeEnter(to, from, next) {
-    if (!store.state.mobile.keystore) {
+    if (!store.state.accounts.hdWallet.encryptedWallet) {
       next({ name: 'new-account' });
       return;
     }
     if (store.getters.loggedIn) {
-      next({ name: 'apps' });
+      next({ name: 'transfer' });
       return;
     }
     next();
@@ -110,59 +138,75 @@ export default [{
   path: '/browser',
   component: Apps,
   beforeEnter: checkLoggedIn(false),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'app-browser',
   path: '/browser/:path+',
   component: AppBrowser,
   beforeEnter: checkLoggedIn(false),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'accounts-new',
   path: '/accounts-new',
   component: AccountsNew,
   beforeEnter: checkLoggedIn(true),
   meta: {
-    displayFooter: true,
+    accountType: 'hd-wallet',
   },
 }, {
+  name: 'vault-new',
+  path: '/vault/new',
+  component: AccountsNew,
+  beforeEnter: checkLoggedIn(true),
+  meta: {
+    accountType: 'air-gap',
+  },
+}, {
+  name: 'vault-setup-method',
+  path: '/vault/choose',
+  component: VaultSetupMethod,
+  beforeEnter: vaultBeforeEnter,
+}, {
+  name: 'vault-setup-another-device',
+  path: '/vault/another-device',
+  component: VaultSetupAnotherDevice,
+  beforeEnter: vaultBeforeEnter,
+}, {
+  name: 'vault-setup-another-device-guide',
+  path: '/vault/another-device/guide',
+  component: VaultSetupAnotherDeviceGuide,
+  beforeEnter: vaultBeforeEnter,
+}, {
+  name: 'vault-setup-completed',
+  path: '/vault/sync-completed',
+  component: VaultSetupCompleted,
+  beforeEnter: vaultBeforeEnter,
+}, ...process.env.UNFINISHED_FEATURES
+  ? [{
+    name: 'vault-setup-same-device',
+    path: '/vault/this-device',
+    component: VaultSetupSameDevice,
+    beforeEnter: vaultBeforeEnter,
+  }] : [], {
   name: 'transfer',
   path: '/transfer',
   component: Transfer,
   beforeEnter: checkLoggedIn(true),
   props: true,
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'receive',
   path: '/transfer/receive',
   component: Receive,
   beforeEnter: checkLoggedIn(true),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'send',
   path: '/transfer/send',
   component: Send,
   beforeEnter: checkLoggedIn(true),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'send-to',
   path: '/transfer/send/:to',
   component: SendAmount,
   beforeEnter: checkLoggedIn(true),
   props: true,
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'send-confirm',
   path: '/transfer/send/:to/:amount',
@@ -170,40 +214,51 @@ export default [{
   beforeEnter: checkLoggedIn(true),
   props: true,
 }, {
+  name: 'transaction-list',
+  path: '/transfer/transactions/:direction?',
+  component: TransactionList,
+  beforeEnter: checkLoggedIn(true),
+  props: true,
+}, {
+  name: 'transaction-details',
+  path: '/transfer/transactions/details/:hash',
+  component: TransactionDetails,
+  beforeEnter: checkLoggedIn(true),
+  props: true,
+}, {
   name: 'settings',
   path: '/settings',
   component: Settings,
   beforeEnter: checkLoggedIn(false),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'settings-network',
   path: '/settings/network',
   component: SettingsNetwork,
   beforeEnter: checkLoggedIn(false),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'settings-network-new',
   path: '/settings/network/new',
   component: SettingsNetworkNew,
   beforeEnter: checkLoggedIn(false),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'settings-remote-connection',
   path: '/settings/remote-connection',
   component: SettingsRemoteConnection,
   beforeEnter: checkLoggedIn(true),
-  meta: {
-    displayFooter: true,
-  },
 }, {
   name: 'settings-remote-connection-new',
   path: '/settings/remote-connection/new',
   component: SettingsRemoteConnectionNew,
   beforeEnter: checkLoggedIn(true),
+}, {
+  name: 'settings-app-list',
+  path: '/settings/apps',
+  component: SettingsAppList,
+  beforeEnter: checkLoggedIn(true),
+}, {
+  name: 'settings-app-details',
+  path: '/settings/apps/:appHost',
+  component: SettingsAppDetails,
+  beforeEnter: checkLoggedIn(true),
+  props: true,
 }];

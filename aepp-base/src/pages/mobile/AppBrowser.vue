@@ -27,7 +27,7 @@
       @close="showMenu = false"
     >
       <MenuItem @click="reload">
-        <AeIcon name="reload" />Refresh aepp
+        <AeIcon name="reload" />Refresh
       </MenuItem>
     </Menu>
 
@@ -36,8 +36,11 @@
     <iframe
       ref="iframe"
       :src="url"
+      :scrolling="$globals.IS_IOS && 'no'"
       @load="loading = false"
     />
+
+    <tab-bar />
   </div>
 </template>
 
@@ -49,10 +52,11 @@ import ButtonPlain from '../../components/ButtonPlain.vue';
 import Menu from '../../components/Menu.vue';
 import MenuItem from '../../components/MenuItem.vue';
 import ProgressFake from '../../components/ProgressFake.vue';
+import TabBar from '../../components/mobile/TabBar.vue';
 
 export default {
   components: {
-    UrlForm, ButtonPlain, AeIcon, Menu, MenuItem, ProgressFake,
+    UrlForm, ButtonPlain, AeIcon, Menu, MenuItem, ProgressFake, TabBar,
   },
   data() {
     return {
@@ -95,7 +99,6 @@ export default {
 
 <style lang="scss" scoped>
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
-@import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 
 .app-browser {
@@ -105,6 +108,7 @@ export default {
 
   header {
     display: flex;
+    padding-top: env(safe-area-inset-top);
     height: rem(54px);
     line-height: rem(54px);
     box-shadow: inset 0 0 rem(8px) rgba(#1B4479, 0.1);
@@ -130,6 +134,7 @@ export default {
 
   iframe {
     flex-grow: 1;
+    width: 100vw;
     border: none;
   }
 }

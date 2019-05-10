@@ -1,5 +1,7 @@
 <template>
   <div class="tab-bar">
+    <ConnectionStatus />
+
     <div class="wrapper">
       <ButtonPlain :to="browserPath || { name: 'apps' }">
         <AeIcon name="grid" />
@@ -13,12 +15,15 @@
 
       <ButtonPlain
         :class="showAccountSwitcher ? 'router-link-active' : ''"
-        @click="() => !showAccountSwitcher && toggleAccountSwitcher()"
+        @click="() => !showAccountSwitcher && accountSwitcher().catch(() => {})"
       >
-        <AeIdentityAvatar :address="activeIdentity.address" />
+        <AeIdenticon :address="activeAccount.address" />
       </ButtonPlain>
 
-      <ButtonPlain :to="{ name: 'address-book' }">
+      <ButtonPlain
+        :to="{ name: 'address-book' }"
+        :disabled="!$globals.UNFINISHED_FEATURES"
+      >
         <AeIcon name="contacts" />
         Contacts
       </ButtonPlain>
@@ -32,21 +37,28 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapMutations } from 'vuex';
-import { AeIdentityAvatar } from '@aeternity/aepp-components';
-import { AeIcon } from '@aeternity/aepp-components-3';
+import { mapState, mapGetters, mapActions } from 'vuex';
+import { AeIdenticon, AeIcon } from '@aeternity/aepp-components-3';
 import ButtonPlain from '../ButtonPlain.vue';
+import ConnectionStatus from './ConnectionStatus.vue';
 
 export default {
-  components: { AeIdentityAvatar, AeIcon, ButtonPlain },
+  components: {
+    AeIdenticon,
+    AeIcon,
+    ButtonPlain,
+    ConnectionStatus,
+  },
+  props: {
+    showAccountSwitcher: { type: Boolean },
+  },
   computed: {
-    ...mapGetters(['activeIdentity']),
+    ...mapGetters({ activeAccount: 'accounts/active' }),
     ...mapState({
-      showAccountSwitcher: ({ mobile }) => mobile.showAccountSwitcher,
       browserPath: ({ mobile }) => mobile.browserPath,
     }),
   },
-  methods: mapMutations(['toggleAccountSwitcher']),
+  methods: mapActions('modals', ['accountSwitcher']),
 };
 </script>
 
@@ -56,9 +68,8 @@ export default {
 @import '~@aeternity/aepp-components-3/src/styles/fallback/variables.scss';
 
 .tab-bar {
-  position: sticky;
-  bottom: 0;
   background-color: $color-neutral-minimum;
+  padding-bottom: env(safe-area-inset-bottom);
 
   .wrapper {
     display: flex;
@@ -78,23 +89,29 @@ export default {
       color: $color-neutral-negative-1;
       text-align: center;
 
+      &:disabled {
+        color: $color-neutral-negative-3;
+      }
+
       .ae-icon {
         font-size: 20px;
         display: block;
         margin-bottom: 4px;
       }
 
-      .ae-identity-avatar {
+      .ae-identicon {
         width: 42px;
         height: 42px;
         border: 2px solid #000;
         box-shadow: 0 0 0 2px $color-primary;
+        margin: 2px;
+        vertical-align: middle;
       }
 
       &.router-link-active {
         color: #fff;
 
-        .ae-identity-avatar {
+        .ae-identicon {
           box-shadow: 0 0 0 2px #fff;
         }
       }

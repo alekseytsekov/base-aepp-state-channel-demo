@@ -1,25 +1,15 @@
 <template>
-  <AeModal class="confirm-account-access-modal">
+  <Modal class="confirm-account-access-modal">
     <Guide>
       <img
         v-if="app.icon"
         :src="app.icon"
       > {{ app.name }}
       <br>requests access to
-      <br><AeIdenticon
-        :address="activeIdentity.address"
-        size="s"
-      /> {{ activeIdentity.name }}
+      <br><AccountInline :address="activeAccount.address" />
     </Guide>
 
-    <ConfirmModalPermission name="Accessing accounts">
-      This aepp will be able to read your public key
-    </ConfirmModalPermission>
-
-    <ConfirmModalPermission name="Preparing transactions">
-      This allows this app to prepare a transaction.
-      You will need to sign the transaction manually.
-    </ConfirmModalPermission>
+    <DetailsAccountAccessPermission :app-name="app.name" />
 
     <AeButtonGroup>
       <AeButton
@@ -32,26 +22,30 @@
         Allow
       </AeButton>
     </AeButtonGroup>
-  </AeModal>
+
+    <TabBar slot="footer" />
+  </Modal>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
-import { AeIdenticon } from '@aeternity/aepp-components-3';
-import AeModal from '../AeModal.vue';
-import ConfirmModalPermission from './ConfirmModalPermission.vue';
+import Modal from './Modal.vue';
+import DetailsAccountAccessPermission from './DetailsAccountAccessPermission.vue';
 import Guide from '../Guide.vue';
+import AccountInline from '../AccountInline.vue';
 import AeButton from '../AeButton.vue';
 import AeButtonGroup from '../AeButtonGroup.vue';
+import TabBar from './TabBar.vue';
 
 export default {
   components: {
-    AeModal,
+    Modal,
     Guide,
-    AeIdenticon,
-    ConfirmModalPermission,
+    AccountInline,
+    DetailsAccountAccessPermission,
     AeButtonGroup,
     AeButton,
+    TabBar,
   },
   props: {
     appHost: { type: String, required: true },
@@ -59,7 +53,7 @@ export default {
     reject: { type: Function, required: true },
   },
   computed: {
-    ...mapGetters(['activeIdentity']),
+    ...mapGetters({ activeAccount: 'accounts/active' }),
     app() {
       return this.$store.getters.getAppMetadata(this.appHost);
     },
@@ -79,18 +73,30 @@ export default {
 @import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 
-.confirm-account-access-modal.ae-modal {
-  background-color: rgba($color-neutral-positive-2, 0.8);
+.confirm-account-access-modal {
+  padding-bottom: rem(70px + 28px + 20px);
 
-  /deep/ .modal {
+  /deep/ .modal-plain {
     max-width: rem(250px);
     padding: rem(32px);
+  }
+
+  .details-account-access-permission {
+    --color-primary: #{$color-neutral-negative-3};
+    --color-secondary: #{$color-neutral};
   }
 
   .ae-button-group {
     margin-left: rem(-16px);
     margin-top: rem(16px);
     margin-right: rem(-16px);
+  }
+
+  .tab-bar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
   }
 }
 </style>

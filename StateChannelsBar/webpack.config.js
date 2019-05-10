@@ -8,7 +8,7 @@ module.exports = {
         path: path.resolve(__dirname, 'public/scripts'),
         library: 'aeWeb',
         libraryTarget: 'umd',
-        umdNamedDefine: true
+        umdNamedDefine: false
     },
 	module: {
 		rules: [{

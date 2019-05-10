@@ -1,280 +1,104 @@
 /* eslint no-param-reassign: ["error", { "ignorePropertyModificationsFor": ["state"] }] */
 
+import { pick } from 'lodash-es';
 import Vue from 'vue';
 import Vuex from 'vuex';
-import BigNumber from 'bignumber.js';
-import { update, flatMap, camelCase } from 'lodash-es';
-import networksRegistry, { defaultNetwork } from '../lib/networksRegistry';
-import { MAGNITUDE } from '../lib/constants';
-import { fetchJson, mapKeysDeep } from './utils';
+import VueRx from 'vue-rx';
+import { makeResetable } from './utils';
+import rootModule from './modules/root';
 import desktopModule from './modules/desktop';
 import mobileModule from './modules/mobile';
+import accountsModule from './modules/accounts';
 import persistState from './plugins/persistState';
-import pollBalance from './plugins/pollBalance';
 import ledgerConnection from './plugins/ledgerConnection';
 import remoteConnection from './plugins/remoteConnection';
 import notificationOnRemoteConnection from './plugins/notificationOnRemoteConnection';
-import decryptAccounts from './plugins/decryptAccounts';
+import desktopGuide from './plugins/desktopGuide';
 import initSdk from './plugins/initSdk';
 import modals from './plugins/modals';
 import registerServiceWorker from './plugins/registerServiceWorker';
 import browserPathTracker from './plugins/browserPathTracker';
+import observables from './plugins/observables';
+import reverseIframe from './plugins/reverseIframe';
+import syncLedgerAccounts from './plugins/syncLedgerAccounts';
+import connectionStatusTracker from './plugins/connectionStatusTracker';
 
 Vue.use(Vuex);
+Vue.use(VueRx);
 
 const store = new Vuex.Store({
   strict: process.env.NODE_ENV !== 'production',
   plugins: [
-    persistState(({
-      migrations, rpcUrl, selectedIdentityIdx, addressBook, customNetworks,
-      apps, cachedAppManifests,
-      mobile, desktop,
-    }) => ({
-      migrations,
-      ...process.env.IS_MOBILE_DEVICE ? {
-        rpcUrl,
-        selectedIdentityIdx,
+    persistState(
+      ({ accounts: { list = [], ...otherAccounts } = {}, ...otherState }) => ({
+        ...otherState,
+        accounts: {
+          ...otherAccounts,
+          list: list.map(account => ({ ...account, transactions: [] })),
+        },
+      }),
+      ({
+        migrations, sdkUrl, addressBook, customNetworks,
+        apps, cachedAppManifests, peerId,
+        accounts: { list, activeIdx, hdWallet: { encryptedWallet } = {} } = {},
+        mobile: { followers } = {},
+        desktop: { showGuideOnStartup } = {},
+      }) => ({
+        migrations,
+        peerId,
+        sdkUrl,
         addressBook,
         customNetworks,
-        apps,
-        cachedAppManifests,
-        mobile: {
-          keystore: mobile.keystore,
-          accountCount: mobile.accountCount,
-          followers: Object.entries(mobile.followers)
-            .reduce((p, [k, { id, name, disconnectedAt }]) => (
-              { ...p, [k]: { id, name, disconnectedAt } }), {}),
-          names: mobile.names,
+        accounts: {
+          list: list.map(({ name, address, source }) => {
+            switch (source.type) {
+              case 'hd-wallet':
+                return {
+                  name,
+                  address,
+                  transactions: [],
+                  source: pick(source, ['type', 'idx']),
+                };
+              default:
+                return { name, address, source };
+            }
+          }),
+          activeIdx,
+          hdWallet: { encryptedWallet },
         },
-      } : {
-        desktop: {
-          peerId: desktop.peerId,
-          ledgerAccountNumber: desktop.ledgerAccountNumber,
+        ...process.env.IS_MOBILE_DEVICE ? {
+          apps,
+          cachedAppManifests,
+          mobile: {
+            followers: Object.entries(followers)
+              .reduce((p, [k, { id, name, disconnectedAt }]) => (
+                { ...p, [k]: { id, name, disconnectedAt } }), {}),
+          },
+        } : {
+          desktop: { showGuideOnStartup },
         },
-      },
-    })),
-    pollBalance,
+      }),
+    ),
     initSdk,
     remoteConnection,
     modals,
     registerServiceWorker,
+    observables,
+    reverseIframe,
+    connectionStatusTracker,
     ...process.env.IS_MOBILE_DEVICE
-      ? [decryptAccounts, notificationOnRemoteConnection, browserPathTracker] : [ledgerConnection],
+      ? [notificationOnRemoteConnection, browserPathTracker]
+      : [ledgerConnection, syncLedgerAccounts, desktopGuide],
   ],
 
-  modules: process.env.IS_MOBILE_DEVICE ? { mobile: mobileModule } : { desktop: desktopModule },
-
-  state: {
-    migrations: {},
-    loginTarget: '',
-    selectedIdentityIdx: 0,
-    balances: {},
-    transactions: {},
-    addresses: [],
-    rpcUrl: networksRegistry[0].url,
-    sdk: null,
-    alert: null,
-    notification: null,
-    addressBook: [],
-    customNetworks: [],
-    apps: [],
-    cachedAppManifests: {},
+  modules: {
+    ...process.env.IS_MOBILE_DEVICE
+      ? { mobile: makeResetable(mobileModule) }
+      : { desktop: makeResetable(desktopModule) },
+    accounts: makeResetable(accountsModule),
   },
 
-  getters: {
-    identities: ({ balances, transactions }, { addresses }, { mobile }) => addresses
-      .map((e, index) => ({
-        balance: balances[e] || BigNumber(0),
-        transactions: transactions[e] || [],
-        address: e,
-        name: process.env.IS_MOBILE_DEVICE ? mobile.names[index] : e.substr(0, 6),
-      })),
-    activeIdentity: ({ selectedIdentityIdx }, { identities }) => identities[selectedIdentityIdx],
-    totalBalance: (state, { identities }) => identities
-      .reduce((sum, { balance }) => sum.plus(balance), BigNumber(0)),
-    networks: ({ customNetworks }) => [
-      ...networksRegistry,
-      ...customNetworks.map(network => ({ ...defaultNetwork, ...network, custom: true })),
-    ],
-    currentNetwork: ({ rpcUrl }, { networks }) => networks.find(({ url }) => url === rpcUrl) || {
-      ...defaultNetwork,
-      name: rpcUrl,
-      url: rpcUrl,
-    },
-    getApp: ({ apps }) => appHost => apps.find(({ host }) => host === appHost),
-    getAppMetadata: ({ cachedAppManifests }) => (host) => {
-      const manifest = cachedAppManifests[host];
-
-      if (typeof manifest !== 'object') {
-        if (manifest !== 'fetching') {
-          store.commit('setCachedAppManifest', {
-            host,
-            manifest: 'fetching',
-          });
-          store.dispatch('fetchAppManifest', host)
-            .then(fetchedManifest => store.commit('setCachedAppManifest', {
-              host,
-              manifest: fetchedManifest,
-            }));
-        }
-        return { name: host };
-      }
-
-      const metadata = {
-        name: manifest.short_name || manifest.name || host,
-      };
-
-      const icons = flatMap(
-        manifest.icons || [],
-        ({ sizes = '', ...icon }) => sizes.split(' ').map(size => ({ ...icon, size })),
-      )
-        .map(({ size, ...icon }) => ({ ...icon, side: Math.max(...size.split('x')) }));
-      const icon = icons.reduce((p, i) => {
-        if (!p) return i || p;
-        if (p.side < 75) return i.side > p.side ? i : p;
-        return i.side > 75 && i.side < p.side ? i : p;
-      }, null);
-      if (icon) {
-        metadata.icon = new URL(icon.src, `http://${host}`).toString();
-      }
-
-      return metadata;
-    },
-  },
-
-  mutations: {
-    syncState(state, remoteState) {
-      Object.assign(state, remoteState);
-    },
-    markMigrationAsApplied(state, migrationId) {
-      Vue.set(state.migrations, migrationId, true);
-    },
-    setLoginTarget(state, loginTarget) {
-      state.loginTarget = loginTarget;
-    },
-    setRPCUrl(state, rpcUrl) {
-      state.rpcUrl = rpcUrl;
-    },
-    setSdk(state, sdk) {
-      state.sdk = sdk;
-    },
-    assignToSdk(state, object) {
-      Object.assign(state.sdk, object);
-    },
-    selectIdentity(state, selectedIdentityIdx) {
-      state.selectedIdentityIdx = selectedIdentityIdx;
-    },
-    setBalance(state, { address, balance }) {
-      Vue.set(state.balances, address, balance);
-    },
-    setTransactions(state, { address, transactions }) {
-      Vue.set(state.transactions, address, transactions);
-    },
-    setAlert(state, options) {
-      state.alert = options;
-    },
-    setNotification(state, options) {
-      state.notification = options;
-    },
-    addAddressBookItem(state, item) {
-      state.addressBook.push(item);
-    },
-    addNetwork(state, network) {
-      state.customNetworks.push(network);
-    },
-    removeNetwork(state, networkIdx) {
-      state.customNetworks.splice(networkIdx - networksRegistry.length, 1);
-    },
-    toggleAppBookmarking(state, host) {
-      const app = store.getters.getApp(host);
-      if (app) {
-        Vue.set(app, 'bookmarked', !app.bookmarked);
-        return;
-      }
-      state.apps.push({ host, bookmarked: true });
-    },
-    grantAccessToAccount(state, { appHost, accountAddress }) {
-      if (!store.getters.getApp(appHost)) {
-        state.apps.push({ host: appHost });
-      }
-
-      const app = store.getters.getApp(appHost);
-      update(
-        app,
-        'permissions.accessToAccounts',
-        (arr = []) => {
-          arr.push(accountAddress);
-          return arr;
-        },
-      );
-    },
-    setCachedAppManifest({ cachedAppManifests }, { host, manifest }) {
-      Vue.set(cachedAppManifests, host, manifest);
-    },
-  },
-
-  actions: {
-    alert({ commit }, options) {
-      return new Promise(resolve => commit('setAlert', {
-        ...options,
-        resolve: () => {
-          commit('setAlert');
-          resolve();
-        },
-      }));
-    },
-    setNotification({ commit }, options) {
-      commit('setNotification', options);
-      if (options.autoClose) setTimeout(() => commit('setNotification'), 3000);
-    },
-    updateAllBalances({ getters: { addresses }, dispatch }) {
-      addresses.forEach(address => dispatch('updateBalance', address));
-    },
-    async updateBalance({ state: { sdk, balances }, commit }, address) {
-      const balance = BigNumber(await sdk.balance(address).catch(() => 0))
-        .shiftedBy(-MAGNITUDE);
-      if (balances[address] && balances[address].isEqualTo(balance)) return;
-      commit('setBalance', { address, balance });
-    },
-    async updateTransactions({ getters: { currentNetwork }, commit }, address) {
-      const transactions = mapKeysDeep(
-        (await fetchJson(
-          `${currentNetwork.middlewareUrl}/middleware/transactions/account/${address}`,
-        )).transactions,
-        (value, key) => camelCase(key),
-      )
-        .map(({ tx: { amount, fee, ...otherTx }, ...otherTransaction }) => ({
-          ...otherTransaction,
-          tx: {
-            ...otherTx,
-            amount: BigNumber(amount).shiftedBy(-MAGNITUDE),
-            fee: BigNumber(fee).shiftedBy(-MAGNITUDE),
-          },
-        }));
-      commit('setTransactions', { address, transactions });
-    },
-    async fetchAppManifest(_, host) {
-      const fetchTextCors = async url => (
-        await fetch(`https://cors-anywhere.herokuapp.com/${url}`)).text();
-      try {
-        const appUrl = new URL(`http://${host}`);
-        if (appUrl.hostname === 'localhost') return {};
-
-        const parser = new DOMParser();
-        const document = parser.parseFromString(await fetchTextCors(appUrl), 'text/html');
-        const base = document.createElement('base');
-        base.href = appUrl;
-        document.head.appendChild(base);
-        const manifestUrl = document.querySelector('link[rel=manifest]').href;
-
-        const manifest = JSON.parse(await fetchTextCors(manifestUrl));
-        manifest.fetchedAt = new Date().toJSON();
-        return manifest;
-      } catch (e) {
-        return {};
-      }
-    },
-  },
+  ...makeResetable(rootModule),
 });
 
 export default store;

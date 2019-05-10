@@ -6,6 +6,18 @@
 
     <AeCard fill="maximum">
       <ListItem
+        title="Reset All Data"
+        @click="reset"
+      >
+        <AeIcon
+          slot="icon"
+          fill="primary"
+          face="round"
+          name="sign-out"
+        />
+      </ListItem>
+
+      <ListItem
         title="Network"
         :subtitle="networkId ? `Network ID ${networkId}` : ''"
       >
@@ -51,7 +63,7 @@
 
 <script>
 import { defer } from 'lodash-es';
-import { mapState, mapGetters } from 'vuex';
+import { mapState, mapGetters, mapActions } from 'vuex';
 import { AeIcon } from '@aeternity/aepp-components-3';
 import Guide from '../../components/Guide.vue';
 import AeCard from '../../components/AeCard.vue';
@@ -85,12 +97,12 @@ export default {
     closePopover() {
       defer(() => { this.networkMode = false; });
     },
+    ...mapActions(['reset']),
   },
 };
 </script>
 
 <style lang="scss" scoped>
-@import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 

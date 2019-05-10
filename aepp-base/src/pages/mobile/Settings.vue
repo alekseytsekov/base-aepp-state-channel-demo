@@ -7,32 +7,6 @@
       <em>Settings</em>
     </Guide>
     <AeCard fill="maximum">
-      <template v-if="$globals.IS_MOBILE_DEVICE">
-        <ListItem
-          title="Logout"
-          subtitle="And see you soon!"
-          @click="logOut"
-        >
-          <AeIcon
-            slot="icon"
-            fill="secondary"
-            face="round"
-            name="share"
-          />
-        </ListItem>
-        <ListItem
-          title="Reset Key Storage"
-          subtitle="After resetting, a recovery is required"
-          @click="signOut"
-        >
-          <AeIcon
-            slot="icon"
-            fill="primary"
-            face="round"
-            name="sign-out"
-          />
-        </ListItem>
-      </template>
       <ListItem
         :to="{ name: 'settings-network' }"
         :subtitle="networkName"
@@ -44,33 +18,80 @@
           face="round"
           name="globe"
         />
+        <AeIcon
+          slot="right"
+          name="left-more"
+        />
       </ListItem>
       <ListItem
-        v-if="$globals.IS_MOBILE_DEVICE"
         :to="{ name: 'settings-remote-connection' }"
-        :subtitle="
-          `${remoteConnectionsCount} device${remoteConnectionsCount === 1 ? '' : 's'} connected`"
+        :subtitle="remoteConnectionsSubtitle"
         title="Remote connections"
       >
         <AeIcon
           slot="icon"
-          fill="alternative"
           face="round"
           name="device"
         />
+        <AeIcon
+          slot="right"
+          name="left-more"
+        />
+      </ListItem>
+      <ListItem
+        :to="{ name: 'settings-app-list' }"
+        :subtitle="appsAccountAccessSubtitle"
+        title="Aepp account access"
+      >
+        <AeIcon
+          slot="icon"
+          face="round"
+          name="grid"
+        />
+        <AeIcon
+          slot="right"
+          name="left-more"
+        />
       </ListItem>
     </AeCard>
-    <div
-      slot="footer"
-      class="version"
-    >
+
+    <h2>Account</h2>
+    <AeCard fill="maximum">
+      <ListItem
+        title="Logout"
+        subtitle="And see you soon!"
+        @click="logout"
+      >
+        <AeIcon
+          slot="icon"
+          fill="secondary"
+          face="round"
+          name="share"
+        />
+      </ListItem>
+      <ListItem
+        title="Reset Key Storage"
+        subtitle="After resetting, a recovery is required"
+        @click="signOut"
+      >
+        <AeIcon
+          slot="icon"
+          fill="primary"
+          face="round"
+          name="sign-out"
+        />
+      </ListItem>
+    </AeCard>
+
+    <div class="version">
       Version {{ version }}
     </div>
   </MobilePage>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
+import { get } from 'lodash-es';
 import { AeIcon } from '@aeternity/aepp-components-3';
 import AeCard from '../../components/AeCard.vue';
 import MobilePage from '../../components/mobile/Page.vue';
@@ -90,17 +111,21 @@ export default {
   }),
   computed: mapState({
     networkName: (state, { currentNetwork }) => currentNetwork.name,
-    remoteConnectionsCount: ({ mobile }) => Object.entries(mobile.followers)
-      .filter(([, f]) => f.connected).length,
+    remoteConnectionsSubtitle: ({ mobile }) => {
+      const c = Object.entries(mobile.followers).filter(([, f]) => f.connected).length;
+      return `${c} device${c === 1 ? '' : 's'} connected`;
+    },
+    appsAccountAccessSubtitle: ({ apps }) => {
+      const c = apps.filter(app => get(app, 'permissions.accessToAccounts.length', 0)).length;
+      return `${c} aepp${c === 1 ? '' : 's'} have account access`;
+    },
   }),
   methods: {
     signOut() {
-      this.$store.commit('signOut');
+      this.$store.dispatch('reset');
       setTimeout(() => this.$store.commit('setLoginTarget'));
     },
-    logOut() {
-      this.$store.commit('setDerivedKey');
-    },
+    ...mapActions(['logout']),
   },
 };
 </script>
@@ -114,6 +139,24 @@ export default {
     .ae-icon-share {
       transform: rotate(90deg);
     }
+
+    .ae-icon-device {
+      background-color: #515ec8;
+    }
+
+    .ae-icon-grid {
+      background-color: #f8963d;
+    }
+
+    .ae-icon-left-more {
+      font-size: rem(20px);
+    }
+  }
+
+  h2 {
+    @extend %face-sans-s;
+    margin-top: rem(30px);
+    font-weight: 500;
   }
 
   .version {

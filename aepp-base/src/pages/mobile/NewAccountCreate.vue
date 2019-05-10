@@ -4,6 +4,7 @@
     left-button-icon-name="back"
     class="new-account-create"
     title="New Account"
+    hide-tab-bar
   >
     <Guide>
       <AeFraction
@@ -42,7 +43,6 @@
 
 <script>
 import { generateMnemonic } from '@aeternity/bip39';
-import keyEmojiPath from 'emoji-datasource-apple/img/apple/64/1f511.png';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
 import AeFraction from '../../components/AeFraction.vue';
@@ -56,7 +56,6 @@ export default {
     seed: generateMnemonic(),
     readingPaused: false,
     readingEnded: false,
-    keyEmoji: keyEmojiPath,
   }),
   methods: {
     async createSeed() {

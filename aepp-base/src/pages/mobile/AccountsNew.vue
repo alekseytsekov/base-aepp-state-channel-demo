@@ -1,13 +1,13 @@
 <template>
   <MobilePage
-    header-fill="primary"
+    :header-fill="accountModule.account.color"
     right-button-icon-name="close"
     @right-button-click="$router.back()"
   >
     <template slot="header">
       <Guide fill="neutral">
-        <em>Create new subaccount</em>
-        and name it
+        <em>Create new {{ accountName }}</em>
+        <br>choose a name
       </Guide>
 
       <form
@@ -24,6 +24,7 @@
           name="newAccountName"
           header="Name"
           placeholder="Name"
+          maxlength="16"
         />
       </form>
     </template>
@@ -38,6 +39,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import AeInput from '../../components/AeInput.vue';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
@@ -52,14 +54,29 @@ export default {
   },
   data: () => ({
     newAccountName: '',
+    redirected: false,
   }),
+  computed: {
+    ...mapState('accounts', {
+      accountModule(state, { getModule }) {
+        return getModule({ source: { type: this.$route.meta.accountType } });
+      },
+    }),
+    accountName() {
+      if (this.$route.meta.accountType === 'air-gap') return 'Vault';
+      return 'subaccount';
+    },
+  },
   methods: {
     async handleAddAddress() {
       if (!await this.$validator.validateAll()) return;
-      this.$store.commit('createIdentity', this.newAccountName);
-      this.$store.commit('selectIdentity', this.$store.state.mobile.accountCount - 1);
-      this.$router.back();
+      await this.$store.dispatch(`accounts/${this.accountModule.name}/create`, this.newAccountName);
+      if (!this.redirected) this.$router.back();
     },
+  },
+  beforeRouteLeave(to, from, next) {
+    this.redirected = true;
+    next();
   },
 };
 </script>

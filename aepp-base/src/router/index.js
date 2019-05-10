@@ -8,13 +8,19 @@ import AddToHomeScreenPrompt from '../pages/mobile/AddToHomeScreenPrompt.vue';
 const router = new Router({
   routes:
     process.env.IS_MOBILE_DEVICE
-      ? (!process.env.IS_CORDOVA && !process.env.IS_PWA && !process.env.IS_IOS
+      ? (!process.env.IS_CORDOVA && !process.env.IS_PWA && !process.env.IS_IOS && process.env.NODE_ENV === 'production'
         && [{
           path: '/',
           component: AddToHomeScreenPrompt,
         }])
         || [...mobileRoutes, ...commonRoutes]
       : [...desktopRoutes, ...commonRoutes],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+    return { x: 0, y: 0 };
+  },
 });
 
 store.watch(
@@ -22,12 +28,13 @@ store.watch(
   (loggedIn) => {
     if (loggedIn) {
       if (process.env.IS_MOBILE_DEVICE || store.state.loginTarget) {
-        router.push(store.state.loginTarget || { name: 'apps' });
+        router.push(store.state.loginTarget || { name: 'transfer' });
         store.commit('setLoginTarget');
       }
     } else {
-      store.commit('setLoginTarget', router.currentRoute.fullPath);
-      router.push({ name: process.env.IS_MOBILE_DEVICE ? 'intro' : 'apps' });
+      const { fullPath } = router.currentRoute;
+      router.replace({ name: process.env.IS_MOBILE_DEVICE ? 'intro' : 'apps' });
+      router.replace(fullPath);
     }
   },
 );

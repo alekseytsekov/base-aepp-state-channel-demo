@@ -12,27 +12,19 @@ localVue.use(Router);
 
 describe('router/index.js', () => {
   describe('guarding routes', () => {
-    const mockRouterStore = (store) => {
-      const state = {
-        mobile: {},
-        ...store.state,
-      };
-
-      mockStore({
-        subscribe: noop,
-        watch: noop,
-        commit: noop,
-        getters: {
-          loggedIn: state.mobile.derivedKey,
-        },
-        ...store,
-        state,
-      });
-    };
+    const mockRouterStore = (hdWallet = {}) => mockStore({
+      subscribe: noop,
+      watch: noop,
+      commit: noop,
+      getters: {
+        loggedIn: hdWallet.wallet,
+      },
+      state: { accounts: { hdWallet } },
+    });
 
     describe('routing when route change is requested', () => {
-      const createRedirectTest = (state, fromName, expectedRedirectName) => () => {
-        mockRouterStore({ state });
+      const createRedirectTest = (hdWallet, fromName, expectedRedirectName) => () => {
+        mockRouterStore(hdWallet);
         router.push({ name: fromName });
         expect(router.currentRoute.name).toBe(expectedRedirectName);
       };
@@ -42,60 +34,48 @@ describe('router/index.js', () => {
       );
 
       it(
-        'pushes INTRO path if current route is APPS and no keystore is present',
-        createRedirectTest({}, 'apps', 'intro'),
+        'pushes INTRO path if current route is TRANSFER and no encryptedWallet is present',
+        createRedirectTest({}, 'transfer', 'intro'),
       );
 
       it(
-        'pushes NEW_ACCOUNT path if current route is LOGIN and no keystore is present',
+        'pushes NEW_ACCOUNT path if current route is LOGIN and no encryptedWallet is present',
         createRedirectTest({}, 'login', 'new-account'),
       );
 
       it(
-        'pushes LOGIN path if current route is APPS and keystore is present but not derivedKey',
-        createRedirectTest({
-          mobile: { keystore: {}, derivedKey: false },
-        }, 'apps', 'login'),
+        'pushes LOGIN path if current route is TRANSFER and encryptedWallet is present but not wallet',
+        createRedirectTest({ encryptedWallet: true, wallet: false }, 'transfer', 'login'),
       );
 
       it(
-        'does NOT redirect if current route is NEW_ACCOUNT and keystore is present but not derivedKey',
-        createNoRedirectTest({
-          mobile: { keystore: {}, derivedKey: false },
-        }, 'new-account'),
+        'does NOT redirect if current route is NEW_ACCOUNT and encryptedWallet is present but not wallet',
+        createNoRedirectTest({ encryptedWallet: true, wallet: false }, 'new-account'),
       );
 
       it(
-        'pushes APPS path if current route is LOGIN and keystore is present and derivedKey',
-        createRedirectTest({
-          mobile: { keystore: {}, derivedKey: true },
-        }, 'login', 'apps'),
+        'pushes TRANSFER path if current route is LOGIN and encryptedWallet is present and wallet',
+        createRedirectTest({ encryptedWallet: true, wallet: true }, 'login', 'transfer'),
       );
 
       it(
-        'does NOT redirect if current route is NEW_ACCOUNT and keystore is present and derivedKey',
-        createNoRedirectTest({
-          mobile: { keystore: {}, derivedKey: true },
-        }, 'new-account'),
+        'does NOT redirect if current route is NEW_ACCOUNT and encryptedWallet is present and wallet',
+        createNoRedirectTest({ encryptedWallet: true, wallet: true }, 'new-account'),
       );
 
       it(
-        'does not interfere when current route is APPS and keystore is present and derivedKey',
-        createNoRedirectTest({
-          mobile: { keystore: {}, derivedKey: true },
-        }, 'apps'),
+        'does not interfere when current route is TRANSFER and encryptedWallet is present and wallet',
+        createNoRedirectTest({ encryptedWallet: true, wallet: true }, 'transfer'),
       );
 
       it(
-        'does not interfere when current route is NEW_ACCOUNT and no keystore is present',
+        'does not interfere when current route is NEW_ACCOUNT and no encryptedWallet is present',
         createNoRedirectTest({}, 'new-account'),
       );
 
       it(
-        'does not interfere when current route is LOGIN and keystore is present but derivedKey',
-        createNoRedirectTest({
-          mobile: { keystore: {}, derivedKey: false },
-        }, 'login'),
+        'does not interfere when current route is LOGIN and encryptedWallet is present but wallet',
+        createNoRedirectTest({ encryptedWallet: true, wallet: false }, 'login'),
       );
 
       it('does not interfere when current route is INTRO', () => {

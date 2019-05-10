@@ -2,6 +2,9 @@
   <MobilePage
     class="confirm-spend-modal"
     fill="primary"
+    hide-tab-bar
+    right-button-icon-name="close"
+    @right-button-click="denyHandler"
   >
     <Guide fill="neutral">
       <AeFraction
@@ -11,34 +14,25 @@
       />
       <em>Complete your transfer</em>
       <br>from
-      <AeIdenticon
-        :address="activeIdentity.address"
-        size="s"
-      />
-      {{ ' ' }}
-      <em>{{ activeIdentity.name }}</em>
+      <AccountInline :address="activeAccount.address" />
       <br>to
-      <AeIdenticon
-        :address="recipientId"
-        size="s"
-      />
-      {{ ' ' }}
-      <em>
-        <AeAddress
-          :address="recipientId"
-          length="short"
-        />
-      </em>
+      <AccountInline :address="recipientId" />
     </Guide>
 
-    <ConfirmModalAmount :amount="amount" />
+    <DetailsAmount :amount="amount" />
 
-    <ConfirmModalFeeInput
+    <DetailsFeeInput
       v-model="newFee"
       :min="minFee"
     />
 
-    <ConfirmModalAddress
+    <DetailsRawData
+      v-if="payload"
+      name="Payload"
+      :data="payload"
+    />
+
+    <DetailsAddress
       name="Recipient Account"
       :address="recipientId"
     />
@@ -62,33 +56,34 @@
 
 <script>
 import { mapState } from 'vuex';
-import { AeIdenticon } from '@aeternity/aepp-components-3';
 import MobilePage from './Page.vue';
-import ConfirmModalAmount from './ConfirmModalAmount.vue';
-import ConfirmModalFeeInput from './ConfirmModalFeeInput.vue';
-import ConfirmModalAddress from './ConfirmModalAddress.vue';
+import DetailsAmount from './DetailsAmount.vue';
+import DetailsFeeInput from './DetailsFeeInput.vue';
+import DetailsRawData from './DetailsRawData.vue';
+import DetailsAddress from './DetailsAddress.vue';
 import Guide from '../Guide.vue';
 import AeFraction from '../AeFraction.vue';
+import AccountInline from '../AccountInline.vue';
 import AeButton from '../AeButton.vue';
-import AeAddress from '../AeAddress.vue';
 import AeButtonGroup from '../AeButtonGroup.vue';
-import ConfirmModalAmountFeeMixin from './ConfirmModalAmountFeeMixin';
+import DetailsAmountFeeMixin from './DetailsAmountFeeMixin';
 
 export default {
   components: {
     MobilePage,
     Guide,
     AeFraction,
-    AeIdenticon,
+    AccountInline,
     AeButton,
     AeButtonGroup,
-    AeAddress,
-    ConfirmModalAmount,
-    ConfirmModalFeeInput,
-    ConfirmModalAddress,
+    DetailsAmount,
+    DetailsFeeInput,
+    DetailsRawData,
+    DetailsAddress,
   },
-  mixins: [ConfirmModalAmountFeeMixin],
+  mixins: [DetailsAmountFeeMixin],
   props: {
+    payload: { type: String, required: true },
     recipientId: { type: String, required: true },
   },
   computed: mapState({

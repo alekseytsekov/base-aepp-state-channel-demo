@@ -73,7 +73,7 @@ export default {
         name: this.name,
         url,
       });
-      this.$store.commit('setRPCUrl', url);
+      this.$store.commit('setSdkUrl', url);
       if (this.finallyTo) this.$router.push(this.finallyTo);
       this.$emit('finally');
     },
@@ -97,7 +97,7 @@ export default {
 
   .ae-button {
     display: block;
-    min-width: rem(250px);
+    min-width: 90%;
     margin-left: auto;
     margin-right: auto;
   }

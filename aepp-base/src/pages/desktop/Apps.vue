@@ -14,7 +14,7 @@
         v-for="(app, idx) in aeternityApps"
         :key="idx"
         v-bind="app"
-        :to="`http://${app.path}`"
+        :to="`https://${app.path}`"
       />
     </div>
   </div>

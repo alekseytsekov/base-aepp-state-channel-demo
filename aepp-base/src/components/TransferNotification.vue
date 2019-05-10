@@ -11,7 +11,7 @@
           name="check"
         />
         <div class="title">
-          Transaction completed
+          Transfer completed
           <div class="subtitle">
             You've sent {{ amount | prefixedAmount }} AE
           </div>
@@ -20,12 +20,14 @@
 
       <div class="footer">
         <AeButton
-          :to="`${currentNetwork.explorerUrl}/#/tx/${transactionHash}`"
+          :to="$globals.IS_MOBILE_DEVICE
+            ? { name: 'transaction-details', params: { hash: transactionHash } }
+            : `${currentNetwork.explorerUrl}/#/tx/${transactionHash}`"
           fill="dark"
           size="small"
           plain
         >
-          View on explorer
+          View {{ $globals.IS_MOBILE_DEVICE ? 'in history' : 'on explorer' }}
         </AeButton>
         <AeButton
           v-copy-on-click="transactionHash"
@@ -72,7 +74,6 @@ export default {
 <style lang="scss" scoped>
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
-@import '~@aeternity/aepp-components-3/src/styles/variables/typography.scss';
 
 .transfer-notification {
   &.fade-enter-active, &.fade-leave-active {
@@ -85,6 +86,7 @@ export default {
 
   position: fixed;
   top: 0;
+  top: env(safe-area-inset-top);
   left: rem(10px);
   right: rem(10px);
   border-radius: 0 0 rem(8px) rem(8px);

@@ -9,7 +9,9 @@
       v-bind="$attrs"
       padded
       v-on="$listeners"
-    />
+    >
+      <slot name="title" />
+    </HeaderMobile>
 
     <header
       v-if="$slots.header"
@@ -26,19 +28,21 @@
       </div>
     </main>
 
-    <footer v-if="$slots.footer">
+    <footer v-if="$slots.footer || !hideTabBar">
       <div class="wrapper">
         <slot name="footer" />
       </div>
+      <tab-bar v-if="!hideTabBar" />
     </footer>
   </div>
 </template>
 
 <script>
 import HeaderMobile from './Header.vue';
+import TabBar from './TabBar.vue';
 
 export default {
-  components: { HeaderMobile },
+  components: { HeaderMobile, TabBar },
   props: {
     headerFill: {
       type: String,
@@ -46,6 +50,7 @@ export default {
         'primary',
         'alternative',
         'neutral',
+        'dark',
         'light',
         '',
       ].includes(value),
@@ -61,6 +66,7 @@ export default {
       ].includes(value),
       default: 'light',
     },
+    hideTabBar: { type: Boolean },
   },
 };
 </script>
@@ -87,6 +93,10 @@ export default {
 
     &.neutral {
       background-color: $color-neutral-positive-2;
+    }
+
+    &.dark {
+      background-color: $color-neutral-minimum;
     }
 
     &.light {
@@ -156,21 +166,40 @@ export default {
     }
   }
 
+  header + main {
+    padding-top: rem(16px);
+  }
+
   main {
     flex-grow: 1;
-    padding-top: rem(16px);
     padding-bottom: rem(32px);
 
     /deep/ {
       .ae-card:first-child {
-        margin-top: rem(16px);
+        margin-top: rem(32px);
       }
     }
   }
 
-  footer /deep/ .ae-button:not(.medium) {
-    margin-bottom: rem(23px);
-    margin-top: rem(23px);
+  footer {
+    position: sticky;
+    bottom: 0;
+
+    @media (max-height: 500px) {
+      position: static;
+    }
+
+    .wrapper /deep/ > {
+      .ae-button:not(.plain),
+      .ae-button-group {
+        box-shadow: 0 0 16px $color-shadow-alpha-15;
+      }
+
+      .ae-button:not(.medium) {
+        margin-bottom: rem(23px);
+        margin-top: rem(23px);
+      }
+    }
   }
 }
 </style>

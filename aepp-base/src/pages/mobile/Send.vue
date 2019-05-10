@@ -2,7 +2,7 @@
   <MobilePage
     :right-button-to="{ name: 'transfer' }"
     right-button-icon-name="close"
-    header-fill="primary"
+    :header-fill="activeColor"
     class="send"
   >
     <template slot="header">
@@ -14,12 +14,7 @@
         />
         <em>New Transfer</em>
         <br>from
-        <AeIdenticon
-          :address="activeIdentity.address"
-          size="s"
-        />
-        {{ ' ' }}
-        <em>{{ activeIdentity.name }}</em>
+        <AccountInline :address="activeAccount.address" />
       </Guide>
 
       <form
@@ -48,13 +43,13 @@
     </AeButton>
 
     <div
-      v-if="identities.length > 1"
+      v-if="inactiveAccounts.length > 1"
       class="own-account"
     >
       Or transfer to your own account
     </div>
     <ListItemAccount
-      v-for="account in identities.filter(i => i !== activeIdentity)"
+      v-for="account in inactiveAccounts"
       :key="account.address"
       :to="{
         name: 'send-to',
@@ -72,11 +67,13 @@
 </template>
 
 <script>
+import { pick } from 'lodash-es';
 import { mapGetters } from 'vuex';
-import { AeIdenticon, AeIcon } from '@aeternity/aepp-components-3';
+import { AeIcon } from '@aeternity/aepp-components-3';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
 import AeFraction from '../../components/AeFraction.vue';
+import AccountInline from '../../components/AccountInline.vue';
 import AeInputAddress from '../../components/AeInputAddress.vue';
 import AeButton from '../../components/AeButton.vue';
 import ListItemAccount from '../../components/ListItemAccount.vue';
@@ -86,7 +83,7 @@ export default {
     MobilePage,
     Guide,
     AeFraction,
-    AeIdenticon,
+    AccountInline,
     AeInputAddress,
     AeButton,
     ListItemAccount,
@@ -95,9 +92,9 @@ export default {
   data: () => ({
     accountTo: '',
   }),
-  computed: mapGetters(['activeIdentity', 'identities']),
-  mounted() {
-    this.$store.dispatch('updateAllBalances');
+  computed: mapGetters('accounts', { activeAccount: 'active', activeColor: 'activeColor' }),
+  subscriptions() {
+    return pick(this.$store.state.observables, ['inactiveAccounts']);
   },
   methods: {
     async setAddress() {
@@ -109,7 +106,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 

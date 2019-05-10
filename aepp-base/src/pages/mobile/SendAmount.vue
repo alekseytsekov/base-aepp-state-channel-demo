@@ -4,7 +4,7 @@
     :right-button-to="{ name: 'transfer' }"
     left-button-icon-name="back"
     right-button-icon-name="close"
-    header-fill="primary"
+    :header-fill="activeColor"
   >
     <template slot="header">
       <Guide fill="neutral">
@@ -15,24 +15,9 @@
         />
         <em>New Transfer</em>
         <br>from
-        <AeIdenticon
-          :address="activeIdentity.address"
-          size="s"
-        />
-        {{ ' ' }}
-        <em>{{ activeIdentity.name }}</em>
+        <AccountInline :address="activeAccount.address" />
         <br>to
-        <AeIdenticon
-          :address="to"
-          size="s"
-        />
-        {{ ' ' }}
-        <em>
-          <AeAddress
-            :address="to"
-            length="short"
-          />
-        </em>
+        <AccountInline :address="to" />
       </Guide>
 
       <form
@@ -45,7 +30,7 @@
             required: true,
             decimal: MAGNITUDE,
             min_value_exclusive: 0,
-            max_value: maxAmount.minus(MIN_SPEND_TX_FEE).toString(),
+            max_value: activeAccount.balance.minus(MIN_SPEND_TX_FEE).toString(),
           }"
           :error="errors.has('amount')"
           :footer="errors.first('amount')"
@@ -66,15 +51,15 @@
 </template>
 
 <script>
+import { pick } from 'lodash-es';
+import { mapGetters } from 'vuex';
 import BigNumber from 'bignumber.js';
-import { mapGetters, mapState } from 'vuex';
-import { AeIdenticon } from '@aeternity/aepp-components-3';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
 import AeFraction from '../../components/AeFraction.vue';
+import AccountInline from '../../components/AccountInline.vue';
 import AeInputAmountAe from '../../components/AeInputAmountAe.vue';
 import AeButton from '../../components/AeButton.vue';
-import AeAddress from '../../components/AeAddress.vue';
 import { MAGNITUDE, MIN_SPEND_TX_FEE } from '../../lib/constants';
 
 export default {
@@ -82,10 +67,9 @@ export default {
     MobilePage,
     Guide,
     AeFraction,
-    AeIdenticon,
+    AccountInline,
     AeInputAmountAe,
     AeButton,
-    AeAddress,
   },
   props: {
     to: {
@@ -99,12 +83,9 @@ export default {
     MIN_SPEND_TX_FEE,
     BigNumber,
   }),
-  computed: {
-    ...mapGetters(['activeIdentity', 'identities']),
-    ...mapState({
-      maxAmount: ({ balances }, { activeIdentity }) => (
-        activeIdentity ? balances[activeIdentity.address] : BigNumber(0)),
-    }),
+  computed: mapGetters('accounts', ['activeColor']),
+  subscriptions() {
+    return pick(this.$store.state.observables, ['activeAccount']);
   },
   methods: {
     async setAmount() {

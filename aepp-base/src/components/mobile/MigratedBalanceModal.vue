@@ -1,5 +1,5 @@
 <template>
-  <AeModal class="migrated-balance-modal">
+  <Modal class="migrated-balance">
     <div class="balance">
       <div class="label">
         {{ migratedBalance }}
@@ -8,39 +8,42 @@
     </div>
 
     <div class="buttons">
-      <AeButton @click="$emit('close')">
+      <AeButton @click="resolve">
         Ok
       </AeButton>
       <AeButton
-        :to="'https://token-migration.aepps.com/#/status/result/' + activeIdentity.address"
+        :to="'https://token-migration.aepps.com/#/status/result/' + activeAccount.address"
         plain
       >
         See migrations
       </AeButton>
     </div>
-  </AeModal>
+  </Modal>
 </template>
 
 <script>
 import BigNumber from 'bignumber.js';
 import { mapGetters } from 'vuex';
-import AeModal from '../AeModal.vue';
+import Modal from './Modal.vue';
 import AeButton from '../AeButton.vue';
 import { MAGNITUDE } from '../../lib/constants';
 
 export default {
   components: {
-    AeModal,
+    Modal,
     AeButton,
+  },
+  props: {
+    resolve: { type: Function, required: true },
   },
   data() {
     return {
       migratedBalance: '',
     };
   },
-  computed: mapGetters(['activeIdentity']),
+  computed: mapGetters({ activeAccount: 'accounts/active' }),
   async mounted() {
-    const response = await fetch(process.env.VUE_APP_MIGRATION_STATUS_URL.replace('ADDRESS', this.activeIdentity.address));
+    const response = await fetch(process.env.VUE_APP_MIGRATION_STATUS_URL.replace('ADDRESS', this.activeAccount.address));
     const json = await response.json();
     this.migratedBalance = json
       .filter(i => i.deliveryPeriod > process.env.VUE_APP_MIGRATION_PHASE)
@@ -53,13 +56,10 @@ export default {
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 
-.migrated-balance-modal.ae-modal {
-  background-color: rgba($color-neutral-positive-2, 0.8);
-
-  /deep/ .modal {
-    width: rem(275px);
+.migrated-balance {
+  /deep/ .modal-plain {
+    max-width: rem(275px);
     padding: rem(50px) rem(30px) rem(10px) rem(30px);
-    border-radius: rem(4px);
     background-color: $color-neutral-positive-3;
   }
 

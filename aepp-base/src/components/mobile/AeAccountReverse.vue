@@ -1,22 +1,22 @@
 <template>
   <AeCard
-    :fill="fill"
+    fill="dark"
     class="ae-account-reverse"
   >
     <main>
       <AeQrCode
         :size="136"
-        :data="activeIdentity.address"
+        :data="activeAccount.address"
       />
       <AeAddress
-        :address="activeIdentity.address"
+        :address="activeAccount.address"
         split-by="3"
       />
     </main>
 
     <template slot="toolbar">
       <span class="balance-title">
-        {{ activeIdentity.name }}
+        {{ activeAccount.name }}
       </span>
     </template>
   </AeCard>
@@ -34,13 +34,7 @@ export default {
     AeQrCode,
     AeAddress,
   },
-  props: {
-    fill: {
-      type: String,
-      required: true,
-    },
-  },
-  computed: mapGetters(['activeIdentity']),
+  computed: mapGetters({ activeAccount: 'accounts/active' }),
 };
 </script>
 
@@ -51,9 +45,10 @@ export default {
 .ae-account-reverse {
   main {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: center;
-    padding: rem(12px);
+    padding-top: rem(12px);
+    padding-bottom: rem(12px);
 
     .ae-qr-code {
       background-color: $color-neutral-maximum;

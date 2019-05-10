@@ -5,16 +5,20 @@
   >
     <header>
       <AeIdenticon :address="address" />
-      <AeInputPlain
+      <form
         v-if="nameEditable"
-        v-focus="nameEditable"
-        :value="name"
-        placeholder="Account name"
-        fill="white"
-        maxlength="16"
-        @input="$emit('name-input', $event)"
-        @blur.native="$emit('name-blur')"
-      />
+        @submit.prevent="$emit('name-blur')"
+      >
+        <AeInputPlain
+          v-focus="nameEditable"
+          :value="name"
+          placeholder="Account name"
+          fill="white"
+          maxlength="16"
+          @input="$emit('name-input', $event)"
+          @blur.native="$emit('name-blur')"
+        />
+      </form>
       <span v-else>
         {{ name }}
       </span>
@@ -39,6 +43,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { focus } from 'vue-focus';
 import { AeIdenticon, AeInputPlain } from '@aeternity/aepp-components-3';
 import BigNumber from 'bignumber.js';
@@ -68,15 +73,18 @@ export default {
       type: BigNumber,
       required: true,
     },
-    fill: {
-      type: String,
-      required: true,
-    },
     nameEditable: {
       type: Boolean,
       default: false,
     },
+    source: {
+      type: Object,
+      required: true,
+    },
   },
+  computed: mapState('accounts', {
+    fill(state, { getColor }) { return getColor(this); },
+  }),
 };
 </script>
 

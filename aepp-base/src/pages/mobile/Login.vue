@@ -2,6 +2,7 @@
   <MobilePage
     :right-button-to="{ name: 'intro' }"
     right-button-icon-name="close"
+    hide-tab-bar
   >
     <Guide>
       <em>Hello!</em>{{ ' ' }}<img :src="wavingHandEmoji">
@@ -12,7 +13,7 @@
 
     <form
       :id="_uid"
-      @submit.prevent="unlockSavedKeystore"
+      @submit.prevent="unlockHdWallet"
     >
       <PasswordPurpose />
       <AeInputPassword
@@ -55,7 +56,7 @@
 </template>
 
 <script>
-import wavingHandEmojiPath from 'emoji-datasource-apple/img/apple/64/1f44b.png';
+import wavingHandEmoji from 'emoji-datasource-apple/img/apple/64/1f44b.png';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
 import AeButton from '../../components/AeButton.vue';
@@ -68,17 +69,17 @@ export default {
   },
   data() {
     return {
-      wavingHandEmoji: wavingHandEmojiPath,
+      wavingHandEmoji,
       password: '',
       wrongPassword: false,
     };
   },
   methods: {
-    async unlockSavedKeystore() {
+    async unlockHdWallet() {
       if (!await this.$validator.validateAll()) return;
 
       try {
-        await this.$store.dispatch('unlockKeystore', this.password);
+        await this.$store.dispatch('accounts/hdWallet/unlockWallet', this.password);
       } catch (e) {
         this.wrongPassword = true;
       }

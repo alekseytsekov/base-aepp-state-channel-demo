@@ -1,17 +1,17 @@
 <template>
-  <MobilePage fill="primary">
+  <MobilePage
+    fill="primary"
+    hide-tab-bar
+    right-button-icon-name="close"
+    @right-button-click="denyHandler"
+  >
     <Guide fill="neutral">
       <em>Sign raw transaction</em>
       <br>by
-      <AeIdenticon
-        :address="activeIdentity.address"
-        size="s"
-      />
-      {{ ' ' }}
-      <em>{{ activeIdentity.name }}</em>
+      <AccountInline :address="activeAccount.address" />
     </Guide>
 
-    <ConfirmModalRawData
+    <DetailsRawData
       name="Data to sign"
       :data="data"
     />
@@ -35,10 +35,10 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { AeIdenticon } from '@aeternity/aepp-components-3';
 import MobilePage from './Page.vue';
 import Guide from '../Guide.vue';
-import ConfirmModalRawData from './ConfirmModalRawData.vue';
+import AccountInline from '../AccountInline.vue';
+import DetailsRawData from './DetailsRawData.vue';
 import AeButton from '../AeButton.vue';
 import AeButtonGroup from '../AeButtonGroup.vue';
 
@@ -46,8 +46,8 @@ export default {
   components: {
     MobilePage,
     Guide,
-    AeIdenticon,
-    ConfirmModalRawData,
+    AccountInline,
+    DetailsRawData,
     AeButton,
     AeButtonGroup,
   },
@@ -56,7 +56,7 @@ export default {
     reject: { type: Function, required: true },
     data: { type: [String, Uint8Array], required: true },
   },
-  computed: mapGetters(['activeIdentity']),
+  computed: mapGetters({ activeAccount: 'accounts/active' }),
   methods: {
     denyHandler() {
       this.reject(new Error('Rejected by user'));

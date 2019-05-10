@@ -29,7 +29,11 @@
       <div class="details">
         {{ account ? account.name : 'Connect an account' }}
         <div class="balance">
-          {{ account ? `${prefixedAmount(account.balance)} AE` : 'With Base æpp or Ledger' }}
+          {{
+            account
+              ? `${prefixedAmount(account.balance)} AE`
+              : 'With Base æpp or Ledger'
+          }}
         </div>
       </div>
       <AeIdenticon :address="account ? account.address : ''" />
@@ -38,7 +42,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapMutations } from 'vuex';
 import { AeIcon, AeIdenticon } from '@aeternity/aepp-components-3';
 import ButtonPlain from '../ButtonPlain.vue';
 import prefixedAmount from '../../filters/prefixedAmount';
@@ -59,17 +63,19 @@ export default {
       name: 'Receive',
       routeName: 'receive',
       iconName: 'receive',
-    }, {
+    }, ...process.env.UNFINISHED_FEATURES ? [{
       name: 'Contacts',
       routeName: 'address-book',
       iconName: 'contacts',
-    }, {
+    }] : [], {
       name: 'Settings',
       routeName: 'settings',
       iconName: 'settings',
     }],
   }),
-  computed: mapGetters({ account: 'activeIdentity' }),
+  subscriptions() {
+    return { account: this.$store.state.observables.activeAccount };
+  },
   methods: {
     prefixedAmount,
     ...mapMutations(['toggleSidebar']),
@@ -79,7 +85,6 @@ export default {
 
 <style lang="scss" scoped>
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
-@import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 
 .header {

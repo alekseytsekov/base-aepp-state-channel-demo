@@ -2,6 +2,7 @@
   <MobilePage
     class="intro"
     fill="primary"
+    hide-tab-bar
   >
     <Guide fill="neutral">
       <em>Base æpp</em>
@@ -11,10 +12,10 @@
 
     <template slot="footer">
       <AeButton
-        :to="{ name: keystore ? 'login' : 'recover' }"
+        :to="{ name: encryptedHdWallet ? 'login' : 'recover' }"
         fill="secondary"
       >
-        {{ keystore ? 'Login' : 'Recover' }}
+        {{ encryptedHdWallet ? 'Login' : 'Recover' }}
       </AeButton>
       <AeButton
         :to="{ name: 'new-account' }"
@@ -44,7 +45,7 @@ import AeButton from '../../components/AeButton.vue';
 export default {
   components: { MobilePage, AeButton, Guide },
   computed: mapState({
-    keystore: state => state.mobile.keystore,
+    encryptedHdWallet: state => state.accounts.hdWallet.encryptedWallet,
   }),
 };
 </script>
@@ -54,6 +55,8 @@ export default {
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 
 .intro.mobile-page {
+  padding-bottom: env(safe-area-inset-bottom);
+
   hr {
     margin: 0 rem(-16px);
     height: 2px;

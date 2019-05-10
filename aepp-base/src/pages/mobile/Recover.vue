@@ -3,6 +3,7 @@
     :right-button-to="{ name: 'intro' }"
     right-button-icon-name="close"
     title="Recover Account"
+    hide-tab-bar
   >
     <Guide>
       <AeFraction
@@ -13,8 +14,7 @@
       Enter <img :src="dizzySymbolEmoji"> your
       <strong>recovery phrase</strong>.
       The one you wrote
-      down during <mark>account</mark>
-      <mark>creation</mark>.
+      down during <mark>account creation</mark>.
     </Guide>
 
     <form
@@ -43,8 +43,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
-import dizzySymbolEmojiPath from 'emoji-datasource-apple/img/apple/64/1f4ab.png';
+import dizzySymbolEmoji from 'emoji-datasource-apple/img/apple/64/1f4ab.png';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
 import AeFraction from '../../components/AeFraction.vue';
@@ -57,12 +56,11 @@ export default {
   },
   data() {
     return {
-      dizzySymbolEmoji: dizzySymbolEmojiPath,
+      dizzySymbolEmoji,
       seed: '',
       error: false,
     };
   },
-  computed: mapState(['keystore']),
   methods: {
     async setSeed() {
       if (!await this.$validator.validateAll()) return;

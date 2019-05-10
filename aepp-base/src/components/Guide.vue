@@ -22,6 +22,7 @@ export default {
       type: String,
       validator: value => [
         'primary',
+        'alternative',
         'neutral',
       ].includes(value),
       default: 'primary',
@@ -119,10 +120,25 @@ export default {
     }
 
     .content {
-      color: $color-primary-positive-3;
+      color: rgba(255, 255, 255, 0.66846);
+
+      em,
+      .account-inline {
+        color: $color-neutral-maximum;
+      }
+    }
+  }
+
+  &.alternative {
+    .icon {
+      color: $color-alternative;
+    }
+
+    .content {
+      color: $color-neutral-negative-3;
 
       em {
-        color: $color-neutral-maximum;
+        color: $color-alternative-negative-1;
       }
     }
   }

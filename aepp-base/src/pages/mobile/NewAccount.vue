@@ -3,6 +3,7 @@
     :right-button-to="{ name: 'intro' }"
     right-button-icon-name="close"
     title="New Account"
+    hide-tab-bar
   >
     <Guide>
       <AeFraction
@@ -34,7 +35,7 @@
 </template>
 
 <script>
-import sparklesEmojiPath from 'emoji-datasource-apple/img/apple/64/2728.png';
+import sparklesEmoji from 'emoji-datasource-apple/img/apple/64/2728.png';
 import AeButton from '../../components/AeButton.vue';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
@@ -46,7 +47,7 @@ export default {
   },
   data() {
     return {
-      sparklesEmoji: sparklesEmojiPath,
+      sparklesEmoji,
     };
   },
 };

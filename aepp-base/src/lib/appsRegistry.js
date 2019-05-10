@@ -1,10 +1,17 @@
 import blockchainExplorerIcon from '../assets/icons/aepps/blockchain-explorer.svg';
 import tokenMigrationIcon from '../assets/icons/aepps/token-migration.jpg';
-import stateChannelIcon from '../assets/icons/aepps/ae-state-channel.svg';
 
 export { default as DEFAULT_ICON } from '../assets/icons/aepps/default.svg';
 
-export const aeternityApps = [{
+const showVotingApp = new Date('2019-05-06T22:00:00.000Z').getTime() <= Date.now()
+  || process.env.VUE_APP_SHOW_VOTING_APP;
+
+export const aeternityApps = [...showVotingApp ? [{
+  name: 'æternity Voting',
+  description: '',
+  path: 'aeternity.com/aepp-hybrid-voting',
+  icon: blockchainExplorerIcon,
+}] : [], {
   name: 'Blockchain Explorer',
   description: 'Verify interactions in real-time. Search the æternity network by address, block or transaction.',
   path: 'explorer.aepps.com',
@@ -19,10 +26,4 @@ export const aeternityApps = [{
   description: 'Based on the example from JS SDK.',
   path: 'example-aepp.origin.aepps.com',
   icon: blockchainExplorerIcon,
-},
-{
-  name: 'State Channel Demo',
-  description: 'State Channel Demo',
-  path: 'localhost:4000',
-  icon: stateChannelIcon,
 }]];

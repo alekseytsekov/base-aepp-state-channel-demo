@@ -7,21 +7,18 @@
   >
     <template slot="header">
       <Guide>
-        <em>Let others scan</em>
-        your address
+        <em>Share your address</em>
+        with sender
       </Guide>
 
-      <AeAccountReverse
-        v-bind="activeIdentity"
-        fill="neutral"
-      />
+      <AeAccountReverse v-bind="activeAccount" />
     </template>
 
     <ListItem
-      v-copy-on-click="activeIdentity.address"
+      v-copy-on-click="activeAccount.address"
       class="copy"
       title="Copy address"
-      subtitle="Share it with sender"
+      subtitle="Save to clipboard"
       border-dark
     >
       <img
@@ -41,7 +38,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { AeIcon } from '@aeternity/aepp-components-3';
-import writingHandEmojiPath from 'emoji-datasource-apple/img/apple/64/270d-fe0f.png';
+import writingHandEmoji from 'emoji-datasource-apple/img/apple/64/270d-fe0f.png';
 import copyOnClick from '../../directives/copyOnClick';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
@@ -59,15 +56,24 @@ export default {
   directives: { copyOnClick },
   data() {
     return {
-      writingHandEmoji: writingHandEmojiPath,
+      writingHandEmoji,
     };
   },
-  computed: mapGetters(['activeIdentity']),
+  computed: mapGetters({ activeAccount: 'accounts/active' }),
 };
 </script>
 
 <style lang="scss" scoped>
-.receive .list-item.copy:not(.v-copied) .ae-icon {
-  display: none;
+@import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
+
+.receive {
+  .ae-account-reverse.ae-card {
+    margin-left: rem(-36px);
+    margin-right: rem(-36px);
+  }
+
+  .list-item.copy:not(.v-copied) .ae-icon {
+    display: none;
+  }
 }
 </style>

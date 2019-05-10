@@ -6,28 +6,31 @@
         <RouterView />
       </div>
       <SidebarDesktop />
-      <FooterDesktop :show-back-button="$route.name !== 'apps'" />
     </div>
+
     <Component
       :is="component"
+      v-for="{ component, key, props } in openedModals"
+      :key="key"
       v-bind="props"
     />
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapState } from 'vuex';
 import HeaderDesktop from './components/desktop/Header.vue';
 import SidebarDesktop from './components/desktop/Sidebar.vue';
-import FooterDesktop from './components/desktop/FooterDesktop.vue';
 
 export default {
   components: {
     HeaderDesktop,
     SidebarDesktop,
-    FooterDesktop,
   },
-  computed: mapGetters('modals', ['component', 'hidePage', 'props']),
+  computed: mapState('modals', {
+    openedModals: (state, { opened }) => opened,
+    hidePage: (state, { opened }) => opened.some(({ hidePage }) => hidePage),
+  }),
 };
 </script>
 

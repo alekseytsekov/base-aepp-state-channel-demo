@@ -6,6 +6,7 @@
     class="ae-input-address"
     rows="3"
     monospace
+    submit-on-enter
     :format-display-value="formatDisplayAddress"
     :format-emit-value="formatEmitAddress"
     v-bind="$attrs"
@@ -56,7 +57,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
 import { AeIdenticon, AeIcon, directives } from '@aeternity/aepp-components-3';
 import AeTextareaFormatted from './AeTextareaFormatted.vue';
 import AeToolbarButton from './AeToolbarButton.vue';
@@ -79,17 +79,10 @@ export default {
   data: () => ({
     showAccountsDropdown: false,
   }),
-  computed: {
-    ...mapState({
-      accounts: (state, { identities, activeIdentity }) => identities
-        .filter(i => i !== activeIdentity),
-    }),
-  },
-  watch: {
-    showAccountsDropdown(value) {
-      if (!value) return;
-      this.$store.dispatch('updateAllBalances');
-    },
+  subscriptions() {
+    return !process.env.IS_MOBILE_DEVICE && {
+      accounts: this.$store.state.observables.inactiveAccounts,
+    };
   },
   methods: {
     formatDisplayAddress(address) {
@@ -124,9 +117,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
-@import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
-
 .ae-input-address {
   .ae-identicon {
     vertical-align: -.55em;

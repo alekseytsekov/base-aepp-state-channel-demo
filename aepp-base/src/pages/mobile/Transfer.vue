@@ -6,7 +6,7 @@
     <template slot="header">
       <Guide>
         <em>Send and receive</em>
-        æternity&nbsp;tokens
+        Æ
       </Guide>
 
       <Menu
@@ -15,7 +15,7 @@
         :transform-origin="{ vertical: 'top', horizontal: 'right' }"
         @close="showAccountMenu = false"
       >
-        <MenuItem v-copy-on-click="activeIdentity.address">
+        <MenuItem v-copy-on-click="activeAccount.address">
           <AeIcon name="copy" />Copy Address
         </MenuItem>
         <MenuItem @click="accountNameEditable = true">
@@ -24,11 +24,10 @@
       </Menu>
 
       <AeAccount
-        v-bind="activeIdentity"
+        v-bind="activeAccount"
         :name-editable="accountNameEditable"
-        fill="primary"
         security-status=""
-        @name-input="name => renameIdentity(name)"
+        @name-input="setName"
         @name-blur="accountNameEditable = false"
       >
         <ButtonPlain
@@ -75,10 +74,25 @@
       />
     </ListItem>
     <ListItem
-      title="Tokens in migration"
-      subtitle="Available after next hardfork"
+      :to="{ name: 'transaction-list' }"
+      title="Transactions"
+      subtitle="Show transaction history"
       border-dark
-      @click="showMigratedBalanceModal = true"
+    >
+      <img
+        slot="icon"
+        :src="mantelpieceClockEmoji"
+      >
+      <AeIcon
+        slot="right"
+        name="left-more"
+      />
+    </ListItem>
+    <ListItem
+      title="Tokens in migration"
+      subtitle="Not shown as balance above"
+      border-dark
+      @click="migratedBalance"
     >
       <img
         slot="icon"
@@ -95,21 +109,18 @@
       :amount="BigNumber(amount)"
       :transaction-hash="transactionHash"
     />
-
-    <MigratedBalanceModal
-      v-if="showMigratedBalanceModal"
-      @close="showMigratedBalanceModal = false"
-    />
   </MobilePage>
 </template>
 
 <script>
 import BigNumber from 'bignumber.js';
-import { mapGetters } from 'vuex';
+import { pick } from 'lodash-es';
+import { mapMutations, mapActions } from 'vuex';
 import { AeIcon } from '@aeternity/aepp-components-3';
-import moneyWithWingsEmojiPath from 'emoji-datasource-apple/img/apple/64/1f4b8.png';
-import manTippingHandEmojiPath from 'emoji-datasource-apple/img/apple/64/1f481-200d-2642-fe0f.png';
-import glowingStarEmojiPath from 'emoji-datasource-apple/img/apple/64/1f31f.png';
+import moneyWithWingsEmoji from 'emoji-datasource-apple/img/apple/64/1f4b8.png';
+import manTippingHandEmoji from 'emoji-datasource-apple/img/apple/64/1f481-200d-2642-fe0f.png';
+import mantelpieceClockEmoji from 'emoji-datasource-apple/img/apple/64/1f570-fe0f.png';
+import glowingStarEmoji from 'emoji-datasource-apple/img/apple/64/1f31f.png';
 import copyOnClick from '../../directives/copyOnClick';
 import MobilePage from '../../components/mobile/Page.vue';
 import Guide from '../../components/Guide.vue';
@@ -119,7 +130,6 @@ import Menu from '../../components/Menu.vue';
 import MenuItem from '../../components/MenuItem.vue';
 import ListItem from '../../components/ListItem.vue';
 import TransferNotification from '../../components/TransferNotification.vue';
-import MigratedBalanceModal from '../../components/mobile/MigratedBalanceModal.vue';
 
 export default {
   components: {
@@ -132,7 +142,6 @@ export default {
     AeIcon,
     ListItem,
     TransferNotification,
-    MigratedBalanceModal,
   },
   directives: { copyOnClick },
   props: {
@@ -147,33 +156,33 @@ export default {
   },
   data() {
     return {
-      moneyWithWingsEmoji: moneyWithWingsEmojiPath,
-      manTippingHandEmoji: manTippingHandEmojiPath,
-      glowingStarEmoji: glowingStarEmojiPath,
+      moneyWithWingsEmoji,
+      manTippingHandEmoji,
+      mantelpieceClockEmoji,
+      glowingStarEmoji,
       showAccountMenu: false,
       accountNameEditable: false,
-      showMigratedBalanceModal: false,
       BigNumber,
       showTransferNotification: !!this.transactionHash,
     };
   },
-  computed: mapGetters(['activeIdentity']),
+  subscriptions() {
+    return pick(this.$store.state.observables, ['activeAccount']);
+  },
   mounted() {
     if (this.showTransferNotification) {
       setTimeout(() => { this.showTransferNotification = false; }, 5000);
     }
   },
   methods: {
-    renameIdentity(name) {
-      this.$store.commit('renameIdentity', { index: this.$store.state.selectedIdentityIdx, name });
-    },
+    ...mapMutations('accounts', ['setName']),
+    ...mapActions('modals', ['migratedBalance']),
   },
 };
 </script>
 
 <style lang="scss" scoped>
 @import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
-@import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 
 .transfer {
   .list-item .ae-icon {

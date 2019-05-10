@@ -20,7 +20,7 @@ module.exports = {
         // (in this case `responderAddress` defined earlier)
         responderId: keyPair.publicKey,
         // Initial deposit in favour of the responder by the initiator
-        pushAmount: 0,
+        pushAmount: 3,
         // Amount of tokens initiator will deposit into state channel
         initiatorAmount: MINIMUM_DEPOSIT,
         // Amount of tokens responder will deposit into state channel
@@ -35,7 +35,7 @@ module.exports = {
         host: nodeConfig.RESPONDER_HOST,
         // Port of the responders node
         port: nodeConfig.RESPONDER_PORT,
-        baseUrl: nodeConfig.API_URL
+        //baseUrl: nodeConfig.API_URL
         //fee: 1000,
         //nonce: 1000
     },

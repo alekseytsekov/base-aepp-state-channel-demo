@@ -1,7 +1,7 @@
 <template>
   <div class="footer-modal">
     <Transition name="fade">
-      <AeOverlay
+      <Overlay
         v-if="$slots.default"
         @click="$emit('toggle')"
       />
@@ -20,23 +20,20 @@
 </template>
 
 <script>
-import { AeOverlay } from '@aeternity/aepp-components';
+import Overlay from '../Overlay.vue';
 
 export default {
-  components: { AeOverlay },
+  components: { Overlay },
 };
 </script>
 
 <style scoped lang="scss">
-@import '~@aeternity/aepp-components/dist/variables.scss';
-
 .footer-modal {
-  .ae-overlay {
-    background: rgba($black, .6);
-
+  .overlay {
     &.fade-enter-active, &.fade-leave-active {
       transition: opacity .5s;
     }
+
     &.fade-enter, &.fade-leave-to {
       opacity: 0;
     }
@@ -48,7 +45,7 @@ export default {
     left: 0;
     right: 0;
     border-top: 2px solid #f0f0f0;
-    background-color: $white;
+    background-color: #fff;
 
     .content {
       height: 450px;

@@ -2,8 +2,7 @@
   <div class="send">
     <Guide size="big">
       <em>Send</em> AE from<br>
-      <AeIdenticon :address="activeAccount.address" />
-      {{ activeAccount.name }}
+      <AccountInline :address="activeAccount.address" />
     </Guide>
 
     <Note>
@@ -27,7 +26,7 @@
           required: true,
           decimal: MAGNITUDE,
           min_value_exclusive: 0,
-          max_value: maxAmount.minus(MIN_SPEND_TX_FEE).toString(),
+          max_value: activeAccount.balance.minus(MIN_SPEND_TX_FEE).toString(),
         }"
         :error="errors.has('amount')"
         :footer="errors.first('amount')"
@@ -48,9 +47,9 @@
 
 <script>
 import BigNumber from 'bignumber.js';
-import { mapState, mapGetters } from 'vuex';
-import { AeIdenticon } from '@aeternity/aepp-components-3';
+import { pick } from 'lodash-es';
 import Guide from '../../components/Guide.vue';
+import AccountInline from '../../components/AccountInline.vue';
 import Note from '../../components/Note.vue';
 import AeInputAddress from '../../components/AeInputAddress.vue';
 import AeInputAmountAe from '../../components/AeInputAmountAe.vue';
@@ -61,7 +60,7 @@ import { MAGNITUDE, MIN_SPEND_TX_FEE } from '../../lib/constants';
 export default {
   components: {
     Guide,
-    AeIdenticon,
+    AccountInline,
     Note,
     AeInputAddress,
     AeInputAmountAe,
@@ -75,12 +74,8 @@ export default {
     MIN_SPEND_TX_FEE,
     transferNotification: null,
   }),
-  computed: {
-    ...mapGetters({ activeAccount: 'activeIdentity' }),
-    ...mapState({
-      maxAmount: ({ balances }, { activeIdentity }) => (
-        activeIdentity ? balances[activeIdentity.address] : BigNumber(0)),
-    }),
+  subscriptions() {
+    return pick(this.$store.state.observables, ['activeAccount']);
   },
   methods: {
     async send() {

@@ -6,17 +6,28 @@
     @click="$emit('click', $event)"
   >
     <div
-      :class="{ 'border-dark': borderDark }"
+      :class="{ 'border-dark': borderDark, 'has-icon': $slots.icon }"
       class="content"
     >
       <slot name="icon" />
-      <div :class="['title', $slots.icon ? 'after-icon' : '']">
-        {{ title }}
+
+      <div
+        v-if="title || $slots.subtitle || subtitle"
+        class="title"
+        :class="{ 'has-content-after': $slots.default || $slots.right }"
+      >
+        <slot name="title">
+          {{ title }}
+        </slot>
         <small :class="{ monospace: subtitleMonospace }">
-          {{ subtitle }}
+          <slot name="subtitle">
+            {{ subtitle }}
+          </slot>
         </small>
       </div>
+
       <slot />
+
       <div
         v-if="$slots.right"
         class="space"
@@ -30,7 +41,7 @@
 export default {
   props: {
     to: { type: [Object, String], default: undefined },
-    title: { type: String, required: true },
+    title: { type: String, default: undefined },
     subtitle: { type: String, default: undefined },
     subtitleMonospace: { type: Boolean, default: false },
     inactive: { type: Boolean, default: false },
@@ -47,7 +58,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '~@aeternity/aepp-components-3/src/styles/globals/functions.scss';
 @import '~@aeternity/aepp-components-3/src/styles/placeholders/typography.scss';
 @import '~@aeternity/aepp-components-3/src/styles/variables/colors.scss';
 
@@ -68,13 +78,29 @@ export default {
     @extend %face-sans-s;
     font-weight: 500;
 
+    &.has-icon {
+      > :first-child {
+        flex-shrink: 0;
+      }
+
+      .title {
+        margin-left: rem(12px);
+      }
+    }
+
     .title {
       @extend %face-sans-s;
+      white-space: nowrap;
       font-weight: 500;
       color: $color-neutral-negative-3;
 
-      &.after-icon {
-        margin-left: rem(12px);
+      &.has-content-after {
+        margin-right: rem(4px);
+      }
+
+      &, small {
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       small {
@@ -95,11 +121,15 @@ export default {
     }
   }
 
-  & + .list-item .content {
-    border-top: 2px solid $color-neutral-positive-2;
+  & + .list-item {
+    &, &:visited {
+      .content {
+        border-top: 2px solid $color-neutral-positive-2;
 
-    &.border-dark {
-      border-top-color: $color-neutral-positive-1;
+        &.border-dark {
+          border-top-color: $color-neutral-positive-1;
+        }
+      }
     }
   }
 
