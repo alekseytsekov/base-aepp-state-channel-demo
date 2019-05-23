@@ -32,8 +32,8 @@ let createAccount = async function (keyPair) {
             publicKey: keyPair.publicKey,
             secretKey: keyPair.secretKey
         },
-        compilerUrl: 'https://compiler.aepps.com',
-        //compilerUrl: 'localhost:10101' 
+        //compilerUrl: 'https://compiler.aepps.com',
+        compilerURL: 'http://localhost:3080' //'https://compiler.aepps.com';
     })
 
     return tempAccount;
@@ -207,39 +207,36 @@ async function connectAsResponder(params) {
 
         //timeout_awaiting_open: TIMEOUT,
         // timeout_idle: TIMEOUT,
-        // minimum_depth: 0
+        minimum_depth: 0
     };
 
-    // console.log('[PARAMS]');
-    // console.log(_params);
-    // console.log();
+    console.log('[PARAMS]');
+    console.log(_params);
+    console.log();
 
-    //return await Channel(_params)
+    return await Channel(_params)
 
-    console.log('account.signTransaction');
-    console.log(account.signTransaction);
-
-    return await Channel({
-        url: 'ws://localhost:3001',
-        pushAmount: 3,
-        initiatorAmount: 1000000000000000,
-        responderAmount: 1000000000000000,
-        channelReserve: 20000000000,
-        ttl: 10000,
-        host: 'localhost',
-        port: 3001,
-        lockPeriod: 1,
-        minimum_depth: 0,
-        initiatorId: 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q',
-        responderId: 'ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU',
-        role: 'responder',
-        sign: (tag, tx) => {
-            console.log('responder sign', tag);
-            console.log(tx);
-            console.log();
-            return account.signTransaction(tx)
-        }
-    })
+    // return await Channel({
+    //     url: 'ws://localhost:3001/channel',
+    //     pushAmount: 3,
+    //     initiatorAmount: 1000000000000000,
+    //     responderAmount: 1000000000000000,
+    //     channelReserve: 20000000000,
+    //     ttl: 10000,
+    //     host: 'localhost',
+    //     port: 3001,
+    //     lockPeriod: 1,
+    //     minimum_depth: 0,
+    //     initiatorId: 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q',
+    //     responderId: 'ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU',
+    //     role: 'responder',
+    //     sign: (tag, tx) => {
+    //         console.log('responder sign', tag);
+    //         console.log(tx);
+    //         console.log();
+    //         return account.signTransaction(tx)
+    //     }
+    // })
 }
 
 async function responderSign(tag, tx) {

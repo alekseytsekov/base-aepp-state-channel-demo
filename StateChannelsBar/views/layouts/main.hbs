@@ -171,13 +171,13 @@
 
         (async function () {
 
-           // account = await aeWeb.aepp();
+           
 
             async function createAccountt() {
                 const API_URL = 'http://localhost:3001';
                 const INTERNAL_API_URL = 'http://localhost:3113';
                 const NETWORK_ID = 'ae_devnet';
-                const compilerURL = 'https://compiler.aepps.com';
+                const compilerURL = 'http://localhost:3080' //'https://compiler.aepps.com';
 
                 const keyPair = {
                     publicKey: 'ak_fUq2NesPXcYZ1CcqBcGC3StpdnQw3iVxMA3YSeCNAwfN4myQk',
@@ -193,7 +193,8 @@
                 });
             }
 
-            account = await createAccountt();
+            account = await aeWeb.aepp();
+            //account = await createAccountt();
 
             publicAddress = await account.address();
             
@@ -264,10 +265,6 @@
 
             startStateChannel = async function () {
 
-                //runTest(account);
-                //console.log('wait for test run...');
-                //return;
-
                 let depositValue = parseInt($(this).data('amount-value'));
 
                 log('[DEBUG] open SC | deposit value:', depositValue);
@@ -336,18 +333,20 @@
                     //timeout_sign: TIMEOUT,
                     
                     //timeout_awaiting_open: TIMEOUT,
-                    timeout_idle: TIMEOUT,
+                    //timeout_idle: TIMEOUT,
                     minimum_depth: 0
                 }
 
-                _params.url = 'localhost:3001';
+                //_params.url = 'localhost:3001';
 
-                //log('[PARAMS]', _params);
+                log('[PARAMS]', _params);
 
-                //return await Channel(_params);
+                return await Channel(_params);
 
+                /*
                 return await Channel({
-                    url: 'ws://localhost:3001',
+                     url: 'ws://localhost:3001/channel',
+                    //url: aeWeb.config.node.STATE_CHANNEL_URL,
                     pushAmount: 3,
                     initiatorAmount: 1000000000000000,
                     responderAmount: 1000000000000000,
@@ -367,6 +366,7 @@
                         return account.signTransaction(tx)
                     }
                 })
+                */
             }
 
             async function sign(tag, tx) {

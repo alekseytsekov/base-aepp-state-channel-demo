@@ -58,13 +58,11 @@
         }
 
         function showHistory() {
-            let logs = getHistory().reverse();
+            let logs = getHistory().sort((a,b) => a.date < b.date);
 
             let historyContainer = $('#history-container');
             historyContainer.empty();
 
-            console.log(historyContainer)
-            
             logs.forEach( function (historyData) {
                 let timespan = parseInt((new Date() - historyData.date) / 1000);
                 let timespanInfo = '';

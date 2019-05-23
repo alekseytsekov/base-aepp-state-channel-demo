@@ -66,7 +66,7 @@
     }
     
     const sharedParams = {
-        url: 'ws://localhost:3001',
+        url: 'ws://localhost:3001/channel', // 'ws://localhost:3001',
         pushAmount: 3,
         initiatorAmount: 1000000000000000,
         responderAmount: 1000000000000000,
