@@ -33,7 +33,7 @@ let createAccount = async function (keyPair) {
             secretKey: keyPair.secretKey
         },
         //compilerUrl: 'https://compiler.aepps.com',
-        compilerURL: 'http://localhost:3080' //'https://compiler.aepps.com';
+        compilerURL: 'http://localhost:3080'
     })
 
     return tempAccount;
@@ -45,16 +45,13 @@ let account;
     console.log('NETWORK_ID:', NETWORK_ID);
     console.log();
     account = await createAccount(keyPair);
+
+    // let aa = await account.spend(FUND_AMOUNT, 'ak_qyLhSWtZNG1hbM4QVqQeJcQJu8mcBPz571qfBeV789918pRhN'); 
 })()
 
 async function createChannel(req, res) {
 
     let params = req.body.params;
-
-    // console.log('[DEBUG] params:');
-    // console.log(params);
-    // console.log();
-
     let channel = await connectAsResponder(params);
 
     let data = {
@@ -90,8 +87,9 @@ async function buyProduct(req, res) {
     let data = openChannels.get(initiatorAddress);
 
     console.log(`[BUY] round: ${data.round}, module: ${data.round % 5}`);
+    console.log(data)
 
-    if (productPrice && data && data.isSigned) {
+    if (productPrice && data ) { // && data.isSigned
 
         data.boughtProducts++;
 
@@ -210,33 +208,7 @@ async function connectAsResponder(params) {
         minimum_depth: 0
     };
 
-    console.log('[PARAMS]');
-    console.log(_params);
-    console.log();
-
-    return await Channel(_params)
-
-    // return await Channel({
-    //     url: 'ws://localhost:3001/channel',
-    //     pushAmount: 3,
-    //     initiatorAmount: 1000000000000000,
-    //     responderAmount: 1000000000000000,
-    //     channelReserve: 20000000000,
-    //     ttl: 10000,
-    //     host: 'localhost',
-    //     port: 3001,
-    //     lockPeriod: 1,
-    //     minimum_depth: 0,
-    //     initiatorId: 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q',
-    //     responderId: 'ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU',
-    //     role: 'responder',
-    //     sign: (tag, tx) => {
-    //         console.log('responder sign', tag);
-    //         console.log(tx);
-    //         console.log();
-    //         return account.signTransaction(tx)
-    //     }
-    // })
+    return await Channel(_params);
 }
 
 async function responderSign(tag, tx) {

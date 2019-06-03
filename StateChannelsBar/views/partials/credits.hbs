@@ -1,23 +1,6 @@
 <div id="credits-wrapper" class="all-frames hide-me">
 
     <div class="h-full w-full  flex justify-center flex-col ">
-        {{!-- <div class="relative">
-            <span class="block px-8 pt-8 text-center tracking-wide text-xs">
-                CREDIT — 15 AE
-            </span>
-            <a href="#" class="no-underline text-pink-darkest text-2xl absolute pin-r pin-t py-6 px-8">
-                ⁞
-            </a>
-        </div>
-        <div class="flex-1 ">
-
-        </div>
-        <div class="bg-pink-darkest  ">
-            <a href="#" class="no-underline text-teal-lightest block p-8 text-center tracking-wide text-xs">
-                ORDER A FREE COFFEE!
-            </a>
-
-        </div> --}}
 
     </div>
 
@@ -78,9 +61,6 @@
         async function updateOffChainBalance () {
             let balance = await getOffChainBalance();
             let toAe = balance / ONE_AE;
-            if(showInfo){
-                console.log('[DEBUG] balance / ae =', toAe);
-            }
             
             $('#credit-off-chain-amount').text(` ${toAe}`);
         }

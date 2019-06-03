@@ -47,13 +47,15 @@
 
     <script>
 
-        const showInfo = true;
+        const showInfo = false;
 
         function log() {
             if (showInfo) {
                 for (let arg in arguments) {
                     console.log(arguments[arg]);
                 }
+
+                console.log();
             }
         }
         
@@ -142,7 +144,7 @@
 
             runOnFrameChange(frameName) {
                 if(this.onFrameChange[frameName]){
-                    log('[ON]', frameName);
+                    log(`[FRAME] ${ frameName }`);
 
                     for(let func in this.onFrameChange[frameName]){
                         this.onFrameChange[frameName][func]();
@@ -156,7 +158,7 @@
         changeFrame = function () {
             let action = $(this).attr('id').replace('btn-', '').toUpperCase();
 
-            log('[BTN-ACTION]', action);
+            log(`[BTN-ACTION] ${ action }`);
 
             scWrapper.hide();
             $(frames[action]).show();
@@ -170,8 +172,6 @@
         }
 
         (async function () {
-
-           
 
             async function createAccountt() {
                 const API_URL = 'http://localhost:3001';
@@ -194,8 +194,6 @@
             }
 
             account = await aeWeb.aepp();
-            //account = await createAccountt();
-
             publicAddress = await account.address();
             
             initiatorAddress = publicAddress;
@@ -207,7 +205,7 @@
                     url: `/faucet?pubKey=${initiatorAddress}`
             });
 
-            log('[RESULT]', result.message);
+            log(`[FAUCET] ${ result.message }`);
 
             $('.change-frame').click(changeFrame);
             
@@ -266,9 +264,6 @@
             startStateChannel = async function () {
 
                 let depositValue = parseInt($(this).data('amount-value'));
-
-                log('[DEBUG] open SC | deposit value:', depositValue);
-
                 depositAmount = depositValue * ONE_AE;
                 
                 showLoader();
@@ -310,7 +305,7 @@
                     url: '/channel',
                     data: data,
                     success: function (response) {
-                        log('[RESULT] channel creation response: ', response);
+                        log(`[RESULT] channel creation response: ${ response }`);
                     }
                 });
             }
@@ -337,36 +332,9 @@
                     minimum_depth: 0
                 }
 
-                //_params.url = 'localhost:3001';
-
                 log('[PARAMS]', _params);
 
                 return await Channel(_params);
-
-                /*
-                return await Channel({
-                     url: 'ws://localhost:3001/channel',
-                    //url: aeWeb.config.node.STATE_CHANNEL_URL,
-                    pushAmount: 3,
-                    initiatorAmount: 1000000000000000,
-                    responderAmount: 1000000000000000,
-                    channelReserve: 20000000000,
-                    ttl: 10000,
-                    host: 'localhost',
-                    port: 3001,
-                    lockPeriod: 1,
-                    minimum_depth: 0,
-                    initiatorId: initiatorAddress,  // 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q',
-                    responderId: 'ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU',
-                    role: 'initiator',
-                    sign: (tag, tx) => {
-                        console.log('initiator sign', tag);
-                        console.log(tx);
-                        console.log();
-                        return account.signTransaction(tx)
-                    }
-                })
-                */
             }
 
             async function sign(tag, tx) {
@@ -374,20 +342,20 @@
                 const txData = deserializeTx(tx);
                 
                 if (txData.tag === 'CHANNEL_CREATE_TX') {
-                    log('[SIGN] CHANNEL_CREATE_TX', txData);
+                log(`[SIGN] CHANNEL_CREATE_TX:`, txData);
                     
                     return account.signTransaction(tx);
                 }
 
                 if (tag === 'update_ack' || tag === 'CHANNEL_OFFCHAIN_TX') {
                     
-                    log('[SIGN] CHANNEL_OFFCHAIN_TX', txData);
+                    log(`[SIGN] CHANNEL_OFFCHAIN_TX: ${ txData }`);
                     
                     return account.signTransaction(tx);
                 }
 
                 if (tag === 'shutdown_sign_ack' || txData.tag === 'CHANNEL_CLOSE_MUTUAL_TX') {
-                    log('[SIGN] CHANNEL_CLOSE_MUTUAL_TX', txData);
+                    log(`[SIGN] CHANNEL_CLOSE_MUTUAL_TX: ${ txData }`);
                     
                     return account.signTransaction(tx);
                 }
@@ -407,19 +375,17 @@
                 });
 
                 channel.on('onChainTx', (tx) => {
-                    log('[ON-CHAIN-TX]', tx);
+                    log(`[ON-CHAIN-TX]: ${ tx }`);
                 })
 
                 channel.on('message', async (msg) => {
 
-                    console.log('[MESSAGE]', msg);
+                    log(`[MESSAGE]:`, msg);
 
                     let info = JSON.parse(msg.info);
 
                     if (msg.info.indexOf('successfully created') >= 0) {
                         loadBuyFrame();
-
-                        log(`[ON_MESSAGE] ${msg.info}`);
 
                         //showSeconds(180);
                         function showSeconds (maxSeconds) {
@@ -435,13 +401,12 @@
                     }
 
                     if(msg.info.indexOf('[OFF_CHAIN]') >= 0) {
-                        log(`[ON_MESSAGE] ${msg.info}`);
 
                         let historyData = {
                             quantity: 1,
                             name: info.name,
                             amount: info.amount,
-                            date: new Date()
+                            date: Date.now() // new Date()
                         };
 
                         let oldState = isNextCoffeeFreeOldState;
@@ -494,7 +459,7 @@
 
             reDeposit = async function (amount) {
 
-                log('[DEBUG] try to redeposit with:', amount);
+                log(`[DEBUG] try to redeposit with: ${ amount }`);
                 
                 showLoader();
                 let result = await channel.deposit(parseInt(amount), async (tx) => await account.signTransaction(tx));
@@ -506,13 +471,13 @@
                         quantity: 1,
                         name: 'CREDIT',
                         amount: amount,
-                        date: new Date()
+                        date:Date.now() // new Date()
                     };
 
                     history.push(historyData);
                 }
 
-                log('[RESULT] credit', result);
+                log(`[RESULT] credit:`, result);
             }
 
             /* Shutdown state channel*/
@@ -530,7 +495,7 @@
                         return account.signTransaction(tx);
                     });
 
-                    log('[RESULT] shutdown', shutDownResult);
+                    log(`[RESULT] shutdown: ${ shutDownResult }`);
                 } catch (e) {
                     console.log('[ERROR] Error occurred while closing the channel.')
                     console.log(e);
@@ -545,7 +510,7 @@
                     url: '/stop',
                     data: data,
                     success: function (response) {
-                        log('[INFO] state channel successfully closed:', response)
+                        log(`[INFO] state channel successfully closed: ${ response }`)
                     },
                     error: function (response) {
                         console.log('[ERROR] stop:', response)
@@ -568,30 +533,11 @@
 
                 amountToRedeposit = parseInt(amountToRedeposit);
 
-                log('[DEBUG] parse credit:', amountToRedeposit);
-
                 await reDeposit(amountToRedeposit * ONE_AE);
             }
 
             getHistory = function () {
                 return history;
-            }
-
-            /* Utils */
-            createAccount = async function (keyPair) {
-                let account = await Universal({
-                    networkId: networkId,
-                    url: url,
-                    internalUrl: internalUrl,
-                    keypair: {
-                        publicKey: keyPair.publicKey,
-                        secretKey: keyPair.secretKey
-                    },
-                    //compilerUrl: 'localhost:10101' 
-                    compilerUrl: 'https://compiler.aepps.com'
-                })
-
-                return account;
             }
 
             async function getParams() {
@@ -607,80 +553,6 @@
                 const txData = Crypto.deserialize(Crypto.decodeTx(tx), { prettyTags: true });
 
                 return txData;
-            }
-
-            async function runTest(initiator) {
-
-                const compilerURL = 'localhost:10101' // https://compiler.aepps.com'
-                
-                const initiatorKeyPair = {
-                    publicKey: 'ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU',
-                    secretKey: 'bb9f0b01c8c9553cfbaf7ef81a50f977b1326801ebf7294d1c2cbccdedf27476e9bbf604e611b5460a3b3999e9771b6f60417d73ce7c5519e12f7e127a1225ca'
-                }
-                
-            
-                //let initiator
-                let initiatorCh
-                
-                const initiatorSign = (tag, tx) => {
-                    console.log('initiator sign', tag);
-                    console.log(tx);
-                    console.log();
-                    return initiator.signTransaction(tx)
-                }
-                
-                const sharedParams = {
-                    url: 'ws://localhost:3001',
-                    pushAmount: 3,
-                    initiatorAmount: 1000000000000000,
-                    responderAmount: 1000000000000000,
-                    channelReserve: 20000000000,
-                    ttl: 10000,
-                    host: 'localhost',
-                    port: 3001,
-                    lockPeriod: 1,
-                    minimum_depth: 0,
-                    // timeout_idle: 1000 * 60 * 20
-                }
-            
-                sharedParams.initiatorId = await initiator.address()
-            
-                //await initiator.spend('6000000000000000', await responder.address())
-                
-                //console.log('[SHARED PARAMS]');
-                //console.log({
-                //    ...sharedParams,
-                //    role: 'initiator',
-                //   sign: initiatorSign
-                //});
-                //console.log();
-            
-                initiatorCh = await Channel({
-                    ...sharedParams,
-                    role: 'initiator',
-                    sign: initiatorSign
-                })
-                
-                let result = await $.ajax({
-                    type: "GET",
-                    url: '/test'
-                });
-            
-                initiatorCh.on('statusChanged', (status) => {
-                    console.log(`[${status.toUpperCase()}]`);
-                    console.log();
-                })
-            
-                const amount = 10
-                result = await initiatorCh.update(
-                await initiator.address(),
-                'ak_fUq2NesPXcYZ1CcqBcGC3StpdnQw3iVxMA3YSeCNAwfN4myQk',
-                amount,
-                //initiatorSign
-                async (tx) => initiator.signTransaction(tx)
-                );
-            
-                console.log('[UPDATE]', result);
             }
 
         })();

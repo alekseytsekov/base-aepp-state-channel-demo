@@ -36,14 +36,6 @@ async function test(req, res) {
         await createAccounts();
         
         async function createAccounts() {
-        
-            // initiator = await Universal({
-            //     networkId: NETWORK_ID,
-            //     url: API_URL,
-            //     internalUrl: INTERNAL_API_URL,
-            //     keypair: initiatorKeyPair,
-            //     compilerUrl: compilerURL
-            // })
             
             responder = await Universal({
                 networkId: NETWORK_ID,
@@ -63,18 +55,7 @@ async function test(req, res) {
             console.log('[BALANCE] responder', balanceOfResponder);
         
             console.log();
-        
-            // console.log('funded');
-            // console.log(result);
-            // console.log();
         }
-        
-        // const initiatorSign = (tag, tx) => {
-        //     console.log('initiator sign', tag);
-        //     console.log(tx);
-        //     console.log();
-        //     return initiator.signTransaction(tx)
-        // }
         
         const responderSign = (tag, tx) => {
             console.log('responder sign', tag);
@@ -110,12 +91,6 @@ async function test(req, res) {
             sign: responderSign
         });
         console.log();
-    
-        // initiatorCh = await Channel({
-        //     ...sharedParams,
-        //     role: 'initiator',
-        //     sign: initiatorSign
-        // })
         
         responderCh = await Channel({
             ...sharedParams,
@@ -127,18 +102,7 @@ async function test(req, res) {
             console.log(`[${status.toUpperCase()}]`);
             console.log();
         })
-    
-        // const amount = 10
-        // const result = await initiatorCh.update(
-        //   await initiator.address(),
-        //   await responder.address(),
-        //   amount,
-        //   //initiatorSign
-        //   async (tx) => initiator.signTransaction(tx)
-        // );
-    
-        // console.log('[UPDATE]', result);
-    
+        
         setTimeout(() => {
             responderCh.shutdown(
                 async (tx) => responder.signTransaction(tx)

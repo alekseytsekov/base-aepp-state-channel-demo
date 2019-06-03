@@ -1,7 +1,7 @@
 version: "3"
 services:
   aeternity_uat:
-    image: aeternity/aeternity:v2.5.0
+    image: aeternity/aeternity:v3.0.1
     container_name: aeternity_uat
     environment:
       - EPOCH_CONFIG=/home/aeternity/aeternity.yaml

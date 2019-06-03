@@ -58,13 +58,22 @@
         }
 
         function showHistory() {
-            let logs = getHistory().sort((a,b) => a.date < b.date);
+            let logs = getHistory();
+
+            function sortByDate(a, b) {
+               return b.date - a.date;
+            }
+
+            logs.sort(sortByDate);
 
             let historyContainer = $('#history-container');
             historyContainer.empty();
 
-            logs.forEach( function (historyData) {
-                let timespan = parseInt((new Date() - historyData.date) / 1000);
+            for (let historyData of logs) {
+
+
+                let timespan = parseInt((Date.now() - historyData.date) / 1000);
+
                 let timespanInfo = '';
                 if(timespan < 60){
                     timespanInfo = `${timespan} sec ago`;
@@ -97,7 +106,7 @@
                 }
                 
                 historyContainer.append(element);
-            });
+            }
         }
 
         helper.setOnFrameChangeFuncs(frames.HISTORY, showHistory);
