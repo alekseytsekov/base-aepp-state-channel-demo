@@ -1,7 +1,6 @@
 
 const stateController = require('./controllers/state-controller');
 const configController = require('./controllers/config-controller');
-const testController = require('./controllers/test-controller');
 
 const partials = {
     HOME: 'partials/home'
@@ -18,5 +17,4 @@ module.exports = app => {
     app.get('/config/params', configController.get.getParams);
     app.get('/products', configController.get.getProducts);
     app.get('/faucet', stateController.get.faucet);
-    app.get('/test', testController.test)
 }

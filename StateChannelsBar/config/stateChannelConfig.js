@@ -2,12 +2,9 @@
 const keyPair = require('./keyPair');
 const nodeConfig = require('./nodeConfig');
 
-//            FEE = 20000000000000
-              
 const ONE_AE = 1000000000000000000;
-//const ONE_AE = 400000000000100; // working one !!!
-//                  
-const MINIMUM_DEPOSIT = ONE_AE // 1000000; 
+             
+const MINIMUM_DEPOSIT = ONE_AE;
 const channelReserve =  MINIMUM_DEPOSIT / 10;
 
 

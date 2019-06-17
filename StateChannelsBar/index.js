@@ -34,5 +34,5 @@ app.set('view engine', '.hbs');
 
 router(app);
 
-console.log('Server start at port:', PORT);
+console.log('Server start on port:', PORT);
 app.listen(PORT);

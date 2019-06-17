@@ -64,9 +64,13 @@ typings/
 uat_db
 
 # dbs
+
+docker/db-testnet-new/
+docker/db-testnet/
+docker/db-testnet-fortuna/
+
+# docker logs
 docker/logs
-docker/db-testnet-new
-docker/db-testnet
 
 # some unused htmls
 public/new-style-html-v2

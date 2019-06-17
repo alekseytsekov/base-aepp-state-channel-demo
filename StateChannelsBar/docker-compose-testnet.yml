@@ -7,15 +7,15 @@ services:
       - EPOCH_CONFIG=/home/aeternity/aeternity.yaml
     volumes:
     #    /Users/alekseytsekov/Documents/projects/aeternity/test-state-demo/state-testnet/StateChannelsBar/docker/test-net-config.yaml
-      - ~/Documents/projects/aeternity/test-state-demo/base-aepp-state-channel-demo/StateChannelsBar/docker/test-net-config.yaml:/home/aeternity/aeternity.yaml
-      - ~/Documents/projects/aeternity/test-state-demo/base-aepp-state-channel-demo/StateChannelsBar/docker/db-testnet-new:/home/aeternity/node/data/mnesia
-      - ~/Documents/projects/aeternity/test-state-demo/base-aepp-state-channel-demo/StateChannelsBar/docker/logs:/home/aeternity/node/log
+      - ~/Documents/projects/aeternity/state-channel-demo-baseaepp/StateChannelsBar/docker/test-net-config.yaml:/home/aeternity/aeternity.yaml
+      - ~/Documents/projects/aeternity/state-channel-demo-baseaepp/StateChannelsBar/docker/db-testnet-fortuna:/home/aeternity/node/data/mnesia
+      - ~/Documents/projects/aeternity/state-channel-demo-baseaepp/StateChannelsBar/docker/logs:/home/aeternity/node/log
     ports:
       - "3013:3013"
       - "3014:3014"
       - "3113:3113"
       # - "3015:3015"
-      - "3333:3333"
+      # - "3333:3333"
 
   # proxy:
   #   image: nginx:1.13.8

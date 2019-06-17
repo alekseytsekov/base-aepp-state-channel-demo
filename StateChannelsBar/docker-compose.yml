@@ -2,7 +2,7 @@
 version: '3'
 services:
   node1:
-    image: aeternity/aeternity:v2.5.0
+    image: aeternity/aeternity:v3.0.1
     hostname: node1
     environment:
       EPOCH_CONFIG: /home/epoch/epoch.yaml
@@ -12,10 +12,10 @@ services:
       - ./docker/epoch_node1_mean15.yaml:/home/epoch/epoch.yaml
       - ./docker/keys/node1:/home/epoch/node/keys
       - node1_db:/home/epoch/node/data/mnesia
-      - ~/Documents/projects/aeternity/test-state-demo/base-aepp-state-channel-demo/StateChannelsBar/docker/logs:/home/aeternity/node/log
+      - ~/Documents/projects/aeternity/state-channel-demo-baseaepp/StateChannelsBar/docker/logs:/home/aeternity/node/log
 
   node2:
-    image: aeternity/aeternity:v2.5.0
+    image: aeternity/aeternity:v3.0.1
     hostname: node2
     environment:
       EPOCH_CONFIG: /home/epoch/epoch.yaml
@@ -27,7 +27,7 @@ services:
       - node2_db:/home/epoch/node/data/mnesia
 
   node3:
-    image: aeternity/aeternity:v2.5.0
+    image: aeternity/aeternity:v3.0.1
     hostname: node3
     environment:
       EPOCH_CONFIG: /home/epoch/epoch.yaml

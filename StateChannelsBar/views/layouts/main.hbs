@@ -47,10 +47,10 @@
 
     <script>
 
-        const showInfo = false;
+        const SHOW_DEBUG_INFO = false;
 
         function log() {
-            if (showInfo) {
+            if (SHOW_DEBUG_INFO) {
                 for (let arg in arguments) {
                     console.log(arguments[arg]);
                 }
@@ -172,26 +172,6 @@
         }
 
         (async function () {
-
-            async function createAccountt() {
-                const API_URL = 'http://localhost:3001';
-                const INTERNAL_API_URL = 'http://localhost:3113';
-                const NETWORK_ID = 'ae_devnet';
-                const compilerURL = 'http://localhost:3080' //'https://compiler.aepps.com';
-
-                const keyPair = {
-                    publicKey: 'ak_fUq2NesPXcYZ1CcqBcGC3StpdnQw3iVxMA3YSeCNAwfN4myQk',
-                    secretKey: '7c6e602a94f30e4ea7edabe4376314f69ba7eaa2f355ecedb339df847b6f0d80575f81ffb0a297b7725dc671da0b1769b1fc5cbe45385c7b5ad1fc2eaf1d609d'
-                }
-
-                return Universal({
-                    networkId: NETWORK_ID,
-                    url: API_URL,
-                    internalUrl: INTERNAL_API_URL,
-                    keypair: keyPair,
-                    compilerUrl: compilerURL
-                });
-            }
 
             account = await aeWeb.aepp();
             publicAddress = await account.address();
@@ -406,7 +386,7 @@
                             quantity: 1,
                             name: info.name,
                             amount: info.amount,
-                            date: Date.now() // new Date()
+                            date: Date.now()
                         };
 
                         let oldState = isNextCoffeeFreeOldState;
@@ -462,7 +442,13 @@
                 log(`[DEBUG] try to redeposit with: ${ amount }`);
                 
                 showLoader();
-                let result = await channel.deposit(parseInt(amount), async (tx) => await account.signTransaction(tx));
+                
+                let result;
+                try {
+                    result = await channel.deposit(parseInt(amount), async (tx) => await account.signTransaction(tx));
+                } catch (e) {
+                    log(e);
+                }
                 
                 loadCreditFrame()
 
@@ -471,7 +457,7 @@
                         quantity: 1,
                         name: 'CREDIT',
                         amount: amount,
-                        date:Date.now() // new Date()
+                        date:Date.now()
                     };
 
                     history.push(historyData);

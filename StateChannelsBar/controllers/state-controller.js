@@ -19,6 +19,20 @@ const amounts = require('./../config/stateChannelConfig').amounts;
 
 const keyPair = require('./../config/keyPair');
 const products = require('./../config/products');
+
+
+const SHOW_DEBUG_INFO = true;
+
+function log() {
+    if (SHOW_DEBUG_INFO) {
+        for (let arg in arguments) {
+            console.log(JSON.stringify(arguments[arg], null, 2));
+        }
+
+        console.log();
+    }
+}
+
 const FUND_AMOUNT = amounts.deposit * 30;
 
 let openChannels = new Map();
@@ -32,7 +46,7 @@ let createAccount = async function (keyPair) {
             publicKey: keyPair.publicKey,
             secretKey: keyPair.secretKey
         },
-        //compilerUrl: 'https://compiler.aepps.com',
+        // compilerUrl: 'https://compiler.aepps.com',
         compilerURL: 'http://localhost:3080'
     })
 
@@ -41,12 +55,23 @@ let createAccount = async function (keyPair) {
 
 let account;
 
-(async function () {
-    console.log('NETWORK_ID:', NETWORK_ID);
-    console.log();
-    account = await createAccount(keyPair);
 
-    // let aa = await account.spend(FUND_AMOUNT, 'ak_qyLhSWtZNG1hbM4QVqQeJcQJu8mcBPz571qfBeV789918pRhN'); 
+
+(async function () {
+
+    log(`'NETWORK_ID: ${ NETWORK_ID }`);
+
+    account = await createAccount(keyPair);
+    
+    // try {
+
+    //     let aa = await account.spend(FUND_AMOUNT, 'ak_2fsZ9H3veZedfaCgX3GZpWvfxx1Z5T4n4dQXVhYKEdu8SwEX6q');
+    //     console.log(aa);
+
+    // } catch (error) {
+    //     console.log('[ERROR]');
+    //     console.log(error);
+    // }
 })()
 
 async function createChannel(req, res) {
@@ -86,8 +111,7 @@ async function buyProduct(req, res) {
     let productPrice = products[productName];
     let data = openChannels.get(initiatorAddress);
 
-    console.log(`[BUY] round: ${data.round}, module: ${data.round % 5}`);
-    console.log(data)
+    log(`[BUY] round: ${data.round}, module: ${data.round % 5}`, data);
 
     if (productPrice && data ) { // && data.isSigned
 
@@ -112,7 +136,7 @@ async function buyProduct(req, res) {
 
         res.send({
             price: productPrice
-        });
+        });  
     } else {
         console.log('[ERROR] buyProduct')
         res.status(404);
@@ -122,9 +146,7 @@ async function buyProduct(req, res) {
 
 function stopChannel(req, res) {
 
-    console.log('[CLOSE] request body');
-    console.log(req.body);
-    console.log();
+    log('[CLOSE] request body', req.body);
 
     let initiatorAddress = req.body.initiatorAddress;
     let result = openChannels.delete(initiatorAddress);
@@ -148,9 +170,12 @@ async function faucet(req, res) {
     try {
         balanceOfInitiator = await account.balance(pubKey);
         let responderBalance = await account.balance(keyPair.publicKey);
-        console.log('[BACK-END] balance:', responderBalance / amounts.deposit);
-    } catch (error) {
         
+        log(`[BACK-END] balance: ${ responderBalance / amounts.deposit }`);
+    } catch (error) {
+        console.log('[ERROR]');
+        console.log(error.message || error);
+        console.log();
     }
 
     try {
@@ -162,9 +187,8 @@ async function faucet(req, res) {
             });
         } else {
             let result = await account.spend(FUND_AMOUNT, pubKey);
-            console.log()
-            console.log('[FAUCET]', result);
-            console.log()
+            
+            log(`[FAUCET] ${ result }`)
             res.send({
                 success: true,
                 message: `[FAUCET] Public key: '${pubKey}' is funded with ${FUND_AMOUNT} aettos.`
@@ -173,9 +197,8 @@ async function faucet(req, res) {
 
         
     } catch (error) {
-        console.log(`[ERROR] [FAUCET]`);
-        console.log(error);
-        console.log();
+
+        log(`[ERROR] [FAUCET]`, error);
 
         res.send({
             success: false,
@@ -212,24 +235,25 @@ async function connectAsResponder(params) {
 }
 
 async function responderSign(tag, tx) {
-    console.log('[SIGN] responder');
+    log('[SIGN] responder');
 
     if(tag === 'deposit_ack') {
-        console.log('[deposit_ack]');
-        console.log(tx);
-        console.log();
+
+        log(`[deposit_ack]`, tx);
         return account.signTransaction(tx)
     }
 
     // Deserialize binary transaction so we can inspect it
     let txData = deserializeTx(tx);
 
+    log(`[TAG] ${ tag }`);
+
     tag = txData.tag;
 
+    log(`[TAG] ${ tag }`);
 
     if (tag === 'responder_sign' || tag === 'CHANNEL_CREATE_TX') {
-        console.log(txData);
-        console.log();
+        log(txData);
         return account.signTransaction(tx)
     }
 
@@ -240,50 +264,45 @@ async function responderSign(tag, tx) {
     if (tag === 'update_ack' || tag === 'CHANNEL_OFFCHAIN_TX' || tag === 'CHANNEL_OFFCHAIN_UPDATE_TRANSFER') {
 
 
-        console.log(txData);
-        console.log();
+        log(txData);
 
         let isValid = isTxValid(txData);
         if (!isValid) {
             // TODO: challenge/dispute
-            console.log('[ERROR] transaction is not valid');
+            log('[ERROR] transaction is not valid');
         }
 
 
 
         // Check if update contains only one offchain transaction
         // and sender is initiator
-        if (txData.tag === 'CHANNEL_OFFCHAIN_TX') { //  && isValid
+        if (txData.tag === 'CHANNEL_OFFCHAIN_TX' || true) { //  && isValid
             sendConfirmMsg(txData);
             return account.signTransaction(tx);
         }
     }
 
     if (tag === 'shutdown_sign_ack' || tag === 'CHANNEL_CLOSE_MUTUAL_TX') { // && txData.tag === 'CHANNEL_CLOSE_MUTUAL_TX'
-        console.log('txData');
-        console.log('...maybe this data is INCORRECT, shows some strange responder amount....');
-        console.log(txData);
-        console.log();
+        log('[txData]', '[WARNING] ...maybe this data is INCORRECT, shows some strange responder amount....', txData);
+
         return account.signTransaction(tx);
     }
 
 
-    console.log('[ERROR] ==> THERE IS NO SUITABLE CASE TO SIGN');
-    console.log(txData);
-    console.log();
+    log('[ERROR] ==> THERE IS NO SUITABLE CASE TO SIGN', txData);
 }
 
 function isTxValid(txData) {
     let lastUpdateIndex = txData.updates.length - 1;
     if (lastUpdateIndex < 0) {
-        console.log('[TX_VALIDATION] ==> last index is smaller than 0')
+        log('[TX_VALIDATION] ==> last index is smaller than 0')
         return false;
     }
 
     let lastUpdate = txData.updates[lastUpdateIndex];
     let data = openChannels.get(lastUpdate.from);
     if (!data) {
-        console.log('[TX_VALIDATION] ==> no data <==')
+        log('[TX_VALIDATION] ==> no data <==')
         return false;
     }
 
@@ -292,11 +311,11 @@ function isTxValid(txData) {
     let isValid = isRoundValid && isPriceValid;
 
     if(!isRoundValid) {
-        console.log('[TX_VALIDATION] ==> invalid round <==');
+        log('[TX_VALIDATION] ==> invalid round <==');
     }
 
     if (!isPriceValid) {
-        console.log('[TX_VALIDATION] ==> invalid price <==');
+        log('[TX_VALIDATION] ==> invalid price <==');
     }
 
     if (isValid) {
@@ -335,9 +354,7 @@ function getOffChainBalances(channel) {
     // off chain balances
     channel.balances([ keyPair.publicKey ])
         .then(function (balances) {
-            console.log('==> off chain balance');
-            console.log('=== host:', balances[keyPair.publicKey]);
-            console.log();
+            console.log('[INFO] off chain balance', `[INFO] host: ${ balances[keyPair.publicKey] }`);
         }).catch(e => console.log(e))
 }
 
